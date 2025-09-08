@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Monkey Fling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        canvas {
+            background-color: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            touch-action: none; /* Prevents default touch behavior */
+        }
+        .ui-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            pointer-events: none;
+        }
+        .instructions, .score-display {
+            background-color: rgba(22, 27, 34, 0.7);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid #30363d;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+        }
+        .score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            left: auto;
+            transform: none;
+        }
+        #resetButton {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+    <div class="ui-container">
+        <div class="instructions">
+            <h1 class="text-3xl font-bold text-green-400 mb-2">2D Monkey Fling!</h1>
+            <p class="text-sm md:text-base">Click and drag the monkey to aim. Release to launch!</p>
+            <button id="resetButton" class="mt-4 px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-full shadow-lg transition-colors duration-200">
+                Fling Again
+            </button>
+        </div>
+    </div>
+    <div class="score-display">
+        <p class="text-xl font-bold">Score: <span id="scoreValue">0</span></p>
+    </div>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+    <script>
+        window.onload = function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreValueElement = document.getElementById('scoreValue');
+            const resetButton = document.getElementById('resetButton');
+
+            // --- Game State Variables ---
+            const gravity = 0.5;
+            const groundY = canvas.height - 20;
+            let score = 0;
+
+            let monkey = {
+                x: 100,
+                y: groundY - 100,
+                radius: 20,
+                vx: 0,
+                vy: 0,
+                color: '#cd853f',
+                rotation: 0,
+                launched: false,
+                isDragging: false,
+                initialMouseX: 0,
+                initialMouseY: 0,
+                // New variables for flailing limbs
+                limbAngle: 0,
+                limbSpeed: 0.1
+            };
+
+            let tree = {
+                x: canvas.width - 200,
+                y: groundY,
+                width: 40,
+                height: 150,
+                color: '#8b4513',
+                shakeOffset: 0,
+                isShaking: false
+            };
+
+            let leaves = {
+                x: tree.x + tree.width / 2,
+                y: tree.y - tree.height,
+                radius: 60,
+                color: '#4caf50'
+            };
+
+            // --- Drawing Functions ---
+            function drawMonkey() {
+                ctx.save();
+                ctx.translate(monkey.x, monkey.y);
+                ctx.rotate(monkey.rotation);
+
+                // Body
+                ctx.fillStyle = monkey.color;
+                ctx.beginPath();
+                ctx.arc(0, monkey.radius * 0.5, monkey.radius * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Head
+                ctx.fillStyle = monkey.color;
+                ctx.beginPath();
+                ctx.arc(0, -monkey.radius * 0.5, monkey.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Face
+                ctx.fillStyle = '#f5cba7';
+                ctx.beginPath();
+                ctx.arc(0, -monkey.radius * 0.5, monkey.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(-5, -monkey.radius * 0.5 - 3, 2, 0, Math.PI * 2);
+                ctx.arc(5, -monkey.radius * 0.5 - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Mouth
+                ctx.beginPath();
+                ctx.arc(0, -monkey.radius * 0.5 + 5, 4, 0, Math.PI, false);
+                ctx.stroke();
+
+                // Limbs
+                ctx.strokeStyle = monkey.color;
+                ctx.lineWidth = 5;
+
+                // Left Arm
+                ctx.save();
+                ctx.rotate(Math.sin(monkey.limbAngle) * 0.75); // Rotate based on sine wave
+                ctx.beginPath();
+                ctx.moveTo(-monkey.radius * 0.8, -monkey.radius * 0.2);
+                ctx.lineTo(-monkey.radius * 1.5, monkey.radius * 0.5);
+                ctx.stroke();
+                ctx.restore();
+
+                // Right Arm
+                ctx.save();
+                ctx.rotate(Math.sin(monkey.limbAngle + Math.PI) * 0.75); // Opposite rotation
+                ctx.beginPath();
+                ctx.moveTo(monkey.radius * 0.8, -monkey.radius * 0.2);
+                ctx.lineTo(monkey.radius * 1.5, monkey.radius * 0.5);
+                ctx.stroke();
+                ctx.restore();
+
+                // Left Leg (attached to body)
+                ctx.save();
+                ctx.rotate(Math.sin(monkey.limbAngle + Math.PI * 0.5) * 0.5); // Slower, phase-shifted rotation
+                ctx.beginPath();
+                ctx.moveTo(-monkey.radius * 0.5, monkey.radius * 1);
+                ctx.lineTo(-monkey.radius * 1.2, monkey.radius * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // Right Leg (attached to body)
+                ctx.save();
+                ctx.rotate(Math.sin(monkey.limbAngle + Math.PI * 1.5) * 0.5); // Opposite, phase-shifted rotation
+                ctx.beginPath();
+                ctx.moveTo(monkey.radius * 0.5, monkey.radius * 1);
+                ctx.lineTo(monkey.radius * 1.2, monkey.radius * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // Hat
+                ctx.fillStyle = '#ff6347';
+                ctx.beginPath();
+                ctx.moveTo(-monkey.radius * 0.8, -monkey.radius * 1.5);
+                ctx.lineTo(monkey.radius * 0.8, -monkey.radius * 1.5);
+                ctx.lineTo(0, -monkey.radius * 2.5);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            function drawTree() {
+                const drawX = tree.x + (tree.isShaking ? tree.shakeOffset : 0);
+                const drawY = tree.y;
+
+                ctx.fillStyle = tree.color;
+                ctx.fillRect(drawX, drawY - tree.height, tree.width, tree.height);
+                
+                ctx.beginPath();
+                ctx.arc(leaves.x + (tree.isShaking ? tree.shakeOffset : 0), leaves.y, leaves.radius, 0, Math.PI * 2);
+                ctx.fillStyle = leaves.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawGround() {
+                ctx.fillStyle = '#228b22';
+                ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            }
+
+            function drawAimLine() {
+                if (monkey.isDragging) {
+                    const dx = monkey.initialMouseX - (monkey.x - monkey.vx * 15);
+                    const dy = monkey.initialMouseY - (monkey.y - monkey.vy * 15);
+
+                    ctx.beginPath();
+                    ctx.moveTo(monkey.x, monkey.y);
+                    ctx.lineTo(monkey.x + dx, monkey.y + dy);
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+            }
+
+            // --- Game Logic ---
+            function update() {
+                if (monkey.launched) {
+                    monkey.vy += gravity;
+                    monkey.x += monkey.vx;
+                    monkey.y += monkey.vy;
+                    monkey.rotation += monkey.vx * 0.02;
+                    monkey.limbAngle += monkey.limbSpeed; // Update the limb angle for flailing
+
+                    if (monkey.y + monkey.radius >= groundY) {
+                        monkey.y = groundY - monkey.radius;
+                        monkey.vy = 0;
+                        monkey.vx = 0;
+                    }
+                    
+                    const dx = leaves.x - monkey.x;
+                    const dy = leaves.y - monkey.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < monkey.radius + leaves.radius) {
+                        if (monkey.launched) {
+                            score += 10;
+                            scoreValueElement.innerText = score;
+                            monkey.launched = false;
+                            monkey.vx = 0;
+                            monkey.vy = 0;
+                            tree.isShaking = true;
+                            setTimeout(() => { tree.isShaking = false; }, 200);
+                        }
+                    }
+                }
+                if (tree.isShaking) {
+                    tree.shakeOffset = (Math.random() - 0.5) * 5;
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawGround();
+                drawTree();
+                drawMonkey();
+                drawAimLine();
+            }
+
+            // --- Main Game Loop ---
+            function gameLoop() {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+
+            // --- Event Handlers ---
+            function onMouseDown(e) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const dx = mouseX - monkey.x;
+                const dy = mouseY - monkey.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < monkey.radius && !monkey.launched) {
+                    monkey.isDragging = true;
+                    monkey.initialMouseX = mouseX;
+                    monkey.initialMouseY = mouseY;
+                }
+            }
+
+            function onMouseMove(e) {
+                if (!monkey.isDragging) return;
+                const rect = canvas.getBoundingClientRect();
+                monkey.x = e.clientX - rect.left;
+                monkey.y = e.clientY - rect.top;
+            }
+
+            function onMouseUp() {
+                if (monkey.isDragging) {
+                    const dx = monkey.initialMouseX - monkey.x;
+                    const dy = monkey.initialMouseY - monkey.y;
+                    
+                    monkey.vx = dx * 0.2;
+                    monkey.vy = dy * 0.2;
+                    
+                    monkey.isDragging = false;
+                    monkey.launched = true;
+                }
+            }
+
+            function resetGame() {
+                monkey.x = 100;
+                monkey.y = groundY - 100;
+                monkey.vx = 0;
+                monkey.vy = 0;
+                monkey.rotation = 0;
+                monkey.launched = false;
+                monkey.isDragging = false;
+                monkey.limbAngle = 0; // Reset limb angle
+            }
+
+            // --- Setup ---
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('touchstart', (e) => onMouseDown(e.touches[0]));
+            canvas.addEventListener('touchmove', (e) => onMouseMove(e.touches[0]));
+            canvas.addEventListener('touchend', onMouseUp);
+            resetButton.addEventListener('click', resetGame);
+
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
