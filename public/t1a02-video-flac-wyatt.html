@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>t1a02-video-flac-wyatt.html</title>
+</head>
+<body>
+
 <script>
     // Existing function for a single number
     function mySquareFunction() {
@@ -35,6 +42,20 @@
         // Display the results
         document.getElementById('myLoopySpan').innerHTML = results;
     }
+
+    // New function to get a random response
+    function getResponse() {
+        let inputText = document.getElementById('myTextBox').value.toLowerCase();
+        let responseSpan = document.getElementById('myResponseSpan');
+
+        if (inputText.length > 0) {
+            let answers = ['yes', 'no', 'idk'];
+            let randomAnswer = answers[Math.floor(Math.random() * answers.length)];
+            responseSpan.innerHTML = randomAnswer;
+        } else {
+            responseSpan.innerHTML = 'Please enter some text!';
+        }
+    }
 </script>
 
 <h2 align=center>t1a02-video-flac-wyatt.html</h2>
@@ -56,3 +77,16 @@ Event: <input type=button value="Square a list of numbers" onclick="{
 }"><br>
 
 Output: <span id="myLoopySpan">...</span>
+
+<hr>
+
+<h2>Yes, No, or I don't know </h2>
+
+Input: <input type="text" id="myTextBox"><br>
+
+Event: <input type="button" value="Get an answer" onclick="getResponse()"><br>
+
+Output: <span id="myResponseSpan">...</span>
+
+</body>
+</html>
