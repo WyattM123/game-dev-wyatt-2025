@@ -1,7 +1,7 @@
 # game-dev-wyatt-2025
 https://wyattm123.github.io/game-dev-wyatt-2025/public/index.html
 
-# School Course GameDev 11-12, Learning Journal for _________________, Semester 1 2025
+# School Course GameDev 11-12, Learning Journal for Wyatt MacDonald, Semester 1 2025
 
 
 Note: If you have a link to an assignment that has not been marked, put "open" after the word details inside the tag.
