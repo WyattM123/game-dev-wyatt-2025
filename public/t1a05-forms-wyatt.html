@@ -1,42 +1,119 @@
 <h1 align=center>t1a05-forms-wyatt.html</h1>
 
 Use an LLM like <a href="https://copilot.microsoft.com">copilot</a> and ask it to "show me how to do all the simple form elements on one html page as if I was a 10 year old"<br><br>
-
-<form>
-  Name:<input type="text" id="name" value="Wyatt"><br>
-  Passowrd:<input type="password" id="password" value="never"><br><br>
-  Number: <input type=number value=6><br>
-  Button as an input: <input type=button value=click onclick="alert('hi')"><br>
-  Button as a tag: <button>Click</button><br>
-  <br><br>
-
-  Radio Buttons:<br>
-  <input type="radio" name="myRad" value"red">Red<br>
-  <input type="radio" name="myRad" value"blue">Blue<br>
-  <input type="radio" name="myRad" value"orange">Orange<br>
-  <input type="radio" name="myRad" value"yellow">Yellow<br>
-  <input type="radio" name="myRad" value"green">Green<br>
-  <br><br>
-
-    Checkboxes:<br>
-    <input type="checkbox" value="reading">Reading<br>
-    <input type="checkbox" value="sports">Sports<br>
-    <input type="checkbox" value="games">Videogames<br>
-    <input type="checkbox" value="logang">Logang<br>
-
-    <br><br>
-
-    <textarea rows=4 cols=90 >
-      Writing here
-    </textarea><br><br>
-
-    Select Box:<br>
-    <select>
-      <option value="usa">USA</option>
-      <option value="canada">Canada</option>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>t1a05-forms-wyatt.html</title>
+</head>
+<body>
+    <h1 align=center>t1a05-forms-wyatt.html</h1>
+    
+    <form id="myForm">
+        Name:<input type="text" id="name" value="Wyatt"><br>
+        Password:<input type="password" id="password" value="never"><br><br>
         
-    </select><br><br>
+        Number: <input type=number id="number" value=6><br>
+        
+        Button as an input: <input type=button value=click onclick="alert('hi')"><br>
+        Button as a tag: <button id="myButtonTag">Click</button><br>
+        <br><br>
 
-    <input type="submit" value="Submit">
-    <input type="reset" value="Reset">
+        Color Select: <input type="color" id="color" value="#0000ff"><br>
+        Date: <input type="date" id="date"><br>
+        How happy are you? (0-100) <input type="range" id="range" value="50" min="0" max="100"><br>
+        <br><br>
+
+        Radio Buttons:<br>
+        <input type="radio" name="myRad" value="red">Red<br>
+        <input type="radio" name="myRad" value="blue">Blue<br>
+        <input type="radio" name="myRad" value="orange">Orange<br>
+        <input type="radio" name="myRad" value="yellow">Yellow<br>
+        <input type="radio" name="myRad" value="green">Green<br>
+        <br><br>
+
+        Checkboxes:<br>
+        <input type="checkbox" id="checkReading" value="reading">Reading<br>
+        <input type="checkbox" id="checkSports" value="sports">Sports<br>
+        <input type="checkbox" id="checkGames" value="games">Videogames<br>
+        <input type="checkbox" id="checkLogang" value="logang">Logang<br>
+        <br><br>
+
+        <textarea rows=4 cols=90 id="message">
+            Writing here
+        </textarea><br><br>
+
+        Select Box:<br>
+        <select id="country">
+            <option value="usa">USA</option>
+            <option value="canada">Canada</option>
+        </select><br><br>
+
+        <input type="submit" value="Submit">
+        <input type="reset" value="Reset">
     </form>
+    
+    <br>
+    
+    <!-- This is where the summary will appear -->
+    <div id="summary"></div>
+    
+    <script>
+        // When the button is clicked, a pop-up will still appear.
+        const myButtonTag = document.getElementById('myButtonTag');
+        myButtonTag.addEventListener('click', function() {
+            alert('hi');
+        });
+
+        // Now, let's make the form show a summary of all your answers when you click Submit.
+        const myForm = document.getElementById('myForm');
+        const summaryDiv = document.getElementById('summary');
+
+        myForm.addEventListener('submit', function(event) {
+            // This stops the page from reloading.
+            event.preventDefault();
+
+            // We'll create a list of all the answers.
+            let summary = "<h2>Form Summary:</h2>";
+            
+            summary += "<b>Name:</b> " + document.getElementById('name').value + "<br>";
+            summary += "<b>Password:</b> " + document.getElementById('password').value + "<br>";
+            summary += "<b>Number:</b> " + document.getElementById('number').value + "<br>";
+            summary += "<b>Color:</b> " + document.getElementById('color').value + "<br>";
+            summary += "<b>Date:</b> " + document.getElementById('date').value + "<br>";
+            summary += "<b>Happiness:</b> " + document.getElementById('range').value + "<br>";
+
+            // Radio Buttons
+            let favoriteColor = "None selected";
+            const radios = document.getElementsByName('myRad');
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked) {
+                    favoriteColor = radios[i].value;
+                    break;
+                }
+            }
+            summary += "<b>Favorite Radio Color:</b> " + favoriteColor + "<br>";
+
+            // Checkboxes
+            let hobbies = [];
+            if (document.getElementById('checkReading').checked) hobbies.push('Reading');
+            if (document.getElementById('checkSports').checked) hobbies.push('Sports');
+            if (document.getElementById('checkGames').checked) hobbies.push('Videogames');
+            if (document.getElementById('checkLogang').checked) hobbies.push('Logang');
+            summary += "<b>Hobbies:</b> " + (hobbies.length > 0 ? hobbies.join(', ') : 'None selected') + "<br>";
+
+            // Text Area
+            summary += "<b>Message:</b> " + document.getElementById('message').value + "<br>";
+
+            // Select Box
+            const countrySelect = document.getElementById('country');
+            summary += "<b>Country:</b> " + countrySelect.options[countrySelect.selectedIndex].text + "<br>";
+            
+            // Put all the answers into our summary div.
+            summaryDiv.innerHTML = summary;
+        });
+    </script>
+</body>
+</html>
