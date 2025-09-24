@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teaching you some alt codes that I know</title>
+</head>
+<body>
 
+    <h2>Common Alt Codes</h2>
+    <p>These are some commonly known altcodes that you can try using by holding alt and pressing any sequence of numbers on your NUMPAD.</p>
+    <ul>
+        <li>Alt + 1 = ☺</li>
+        <li>Alt + 2 = ☻</li>
+        <li>Alt + 11 = ♂</li>
+        <li>Alt + 12 = ♀</li>
+        <li>Alt + 15 = ☼</li>
+        <li>Alt + 0169 = ©</li>
+        <li>Alt + 0174 = ®</li>
+        <li>Alt + 0153 = ™</li>
+        <li>Alt + 0137 = ‰</li>
+        <li>Alt + 0189 = ½</li>
+        <li>Alt + 0188 = ¼</li>
+        <li>Alt + 0190 = ¾</li>
+        <li>Alt + 0162 = ¢</li>
+        <li>Alt + 0163 = £</li>
+        <li>Alt + 0165 = ¥</li>
+        <li>Alt + 0128 = €</li>
+    </ul>
+
+    <h2>Try it Yourself</h2>
+    <p>Click inside the box below and try entering your own alt codes to see them appear!</p>
+    <textarea id="altCodeTester" rows="5" cols="40" placeholder="Try it yourself! (Note: the symbols will appear different depending on how much pixels are able to be used)"></textarea>
+
+    <h2>Alt Code Lookup</h2>
+    <p>Enter an alt code number to see the corresponding character.</p>
+    <input type="text" id="altCodeInput" placeholder="e.g., 0169">
+    <button id="lookupButton">Look Up Character</button>
+    <p id="result"></p>
+
+    <script>
+        document.getElementById('lookupButton').addEventListener('click', function() {
+            const inputElement = document.getElementById('altCodeInput');
+            const resultElement = document.getElementById('result');
+            const altCode = inputElement.value;
+
+            if (altCode.trim() === '') {
+                resultElement.textContent = "Please enter a number.";
+                return;
+            }
+
+            const codeNumber = parseInt(altCode, 10);
+
+            if (isNaN(codeNumber)) {
+                resultElement.textContent = "Put in a number.";
+            } else {
+                const character = String.fromCharCode(codeNumber);
+                resultElement.textContent = `Character: ${character}`;
+            }
+        });
+    </script>
+
+</body>
+</html>
