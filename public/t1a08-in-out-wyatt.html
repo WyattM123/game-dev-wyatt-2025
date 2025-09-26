@@ -1,9 +1,36 @@
 <!DOCTYPE html>
-<html lang="en"
-  <head>
-  <meta charset="UTF-">
-  <meta name="viewport" content="width=device=width, initial-scale=1.0">
-  <title>t1a08-in-out-wyatt</title>
-  <style>
-    body {font-family: 'Inter', comic-sans;}
-    </style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Text Display</title>
+</head>
+<body>
+
+    <input type="text" id="mytext01" value="wyatt">
+
+    <br><br>
+
+    <span id="mySpan01">...</span>
+
+    <br>
+
+    <button onclick="updateDisplay()">Show or Update Name</button>
+
+    <script>
+        function updateDisplay() {
+            const inputElement = document.getElementById('mytext01');
+            const displayElement = document.getElementById('mySpan01');
+
+            const name = inputElement.value.trim();
+
+            if (name === '') {
+                displayElement.textContent = '...';
+            } else {
+                displayElement.textContent = name;
+            }
+        }
+    </script>
+
+</body>
+</html>
