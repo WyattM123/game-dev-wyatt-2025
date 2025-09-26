@@ -1,8 +1,23 @@
 <script>
     function myDoStuff(){
-    let myIn = document.getElementById('myNum01')
-    let myOut = document.getElementById('mySpan01')
-    myOut.innerHTML = myIn.value
+        document.getElementById('mySpan01').innerHTML = document.getElementById('myNum01').value
+    }
+
+    function loopStuff(){
+        let myIn = document.getElementById('myNum01')
+        let myOut = document.getElementById('mySpan01')
+        let name = myIn.value
+        let output = ''
+        
+        let randomCount = Math.floor(Math.random() * 50) + 1;
+
+        output += 'Random number of displays chosen: <b>' + randomCount + '</b><br><br>'
+
+        for(let i = 0; i < randomCount; i++){
+            output += (i + 1) + ". " + name + "<br>"
+        }
+
+        myOut.innerHTML = output
     }
 </script>
 
@@ -11,6 +26,10 @@
 <input id="myNum01" type=text value="wyatt" ><br>
 <span id="mySpan01">...</span><br>
 
-<input type=button value="Do Stuff" onclick="{
+<input type=button value="Display Once" onclick="{
     myDoStuff()
+}"><br>
+
+<input type=button value="How many names are there?" onclick="{
+    loopStuff()
 }"><br>
