@@ -6,12 +6,11 @@ Show correct use of const, var, let and integer, character, boolean, float and s
 value="Mary" ><br>
 <span id="mySpan01">...</span><br>
 
-<input type=button value="add (concatenate) strings" onclick="(
-  let myFred = document.getElementById('myNum01').value
-  var myMary = document.getElementById('myNum02').value
-  const myOut = document.getElementById('mySpan01')
-  myOut.innerHTML = myFred + ' ' + myMary
-  }"><br>
-
+<input type=button value="add (concatenate) strings" onclick="{
+  let myFred = document.getElementById('myNum01').value
+  var myMary = document.getElementById('myNum02').value
+  const myOut = document.getElementById('mySpan01')
+  myOut.innerHTML = myFred + ' ' + myMary
+  }"><br>
 
   You do similar versions of this for integer, character, boolean, and float.
