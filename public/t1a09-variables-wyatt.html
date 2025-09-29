@@ -1,0 +1,17 @@
+<h2 align=center>t1a09-variables-wyatt.html</h2>
+
+Show correct use of const, var, let and integer, character, boolean, float and string.<br>
+
+<input id="myNum01" type=text value="Fred" > + <input id="myNum02" type=text
+value="Mary" ><br>
+<span id="mySpan01">...</span><br>
+
+<input type=button value="add (concatenate) strings" onclick="(
+  let myFred = document.getElementById('myNum01').value
+  var myMary = document.getElementById('myNum02').value
+  const myOut = document.getElementById('mySpan01')
+  myOut.innerHTML = myFred + ' ' + myMary
+  }"><br>
+
+
+  You do similar versions of this for integer, character, boolean, and float.
