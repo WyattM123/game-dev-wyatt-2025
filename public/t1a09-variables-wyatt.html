@@ -9,7 +9,7 @@
 <p>Demonstrating use of <code>const</code>, <code>var</code>, <code>let</code> with different data types (Integer, Float, String, Character, Boolean).</p>
 <hr>
 
-<h2 align="center">1. Strings (Text)</h2>
+<h2 align="center">1. Strings</h2>
 <p>
     Combine the text inputs using <code>let</code> and <code>var</code>.
 </p>
@@ -30,7 +30,7 @@
 
 <hr>
 
-<h2 align="center">2. Integers: Calculate Rectangle Area</h2>
+<h2 align="center">2. Integers</h2>
 <p>
     Enter the Length and Width of a rectangle to calculate its area (Length x Width).
 </p>
@@ -55,5 +55,37 @@
         myOutInt.innerHTML = '<h3>Results:</h3>' + 
                              'Area = Length x Width <br>' +
                              `Area = ${length} x ${width} = ${area}`;
+    }
+}"><br>
+
+<hr>
+
+<h2 align="center">3. Float</h2>
+<p>
+    Uh oh you have to pay taxes! Lets calculate them rq
+</p>
+
+<p>
+    Item Price (let): <input id="myFloat01" type="text" value="25.99"> <br><br>
+    Tax Rate (var) (e.g., 0.05 for 5%): <input id="myFloat02" type="text" value="0.05">
+</p>
+<span id="mySpan03">...</span><br><br>
+
+<input type="button" value="Calculate Total Cost" onclick="{
+    let price = parseFloat(document.getElementById('myFloat01').value);
+    var taxRate = parseFloat(document.getElementById('myFloat02').value);
+    const myOutFloat = document.getElementById('mySpan03');
+    
+    if (isNaN(price) || isNaN(taxRate) || price < 0 || taxRate < 0) {
+        myOutFloat.innerHTML = 'Invalid input. Please enter valid positive numbers.';
+    } else {
+        let taxAmount = price * taxRate;
+        // Calculate total cost and round to two decimal places for currency
+        let totalCost = price + taxAmount; 
+        
+        myOutFloat.innerHTML = '<h3>Results:</h3>' + 
+                             `Price: \$${price.toFixed(2)}<br>` +
+                             `Tax Amount (${taxRate * 100}%): \$${taxAmount.toFixed(2)}<br>` +
+                             `Total Cost (const): <b>\$${totalCost.toFixed(2)}</b>`;
     }
 }"><br>
