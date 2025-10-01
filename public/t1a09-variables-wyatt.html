@@ -1,18 +1,48 @@
-<h2 align=center>t1a09-variables-wyatt.html</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>T1A09 Variables - Wyatt</title>
+</head>
+<body>
 
-Show correct use of const, var, let and integer, character, boolean, float and string.<br>
+<h1 align="center">t1a09-variables-wyatt.html</h1>
+<p>Demonstrating use of <code>const</code>, <code>var</code>, <code>let</code> with the Integer data type.</p>
+<hr>
 
-<input id="myNum01" type=text value="Fred" > + <input id="myNum02" type=text
-value="Mary" ><br>
-<span id="mySpan01">...</span><br>
+<!-- 
+    SECTION: INTEGER (Area Calculation Example)
+    Data Type: Integer (Parsed)
+    Operation: Multiplication (Area = Length * Width)
+-->
+<h2 align="center">Integers: Calculate Rectangle Area</h2>
+<p>
+    Enter the Length and Width of a rectangle to calculate its area (Length &times; Width).
+</p>
+<p>
+    Length ($\text{let}$): <input id="myInt01" type="text" value="12"> <br><br>
+    Width ($\text{var}$): <input id="myInt02" type="text" value="5">
+</p>
+<span id="mySpan02">...</span><br><br>
 
-<input type=button value="add (concatenate) strings" onclick="{
-  let myFred = document.getElementById('myNum01').value
-  var myMary = document.getElementById('myNum02').value
-  const myOut = document.getElementById('mySpan01')
-  myOut.innerHTML = myFred + ' ' + myMary
-  }"><br>
+<input type="button" value="Calculate Area" onclick="{
+    const myOutInt = document.getElementById('mySpan02');
+    
+    let length = parseInt(document.getElementById('myInt01').value);
+    
+    var width = parseInt(document.getElementById('myInt02').value);
+    
+    if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
+        myOutInt.innerHTML = 'Please enter valid positive numbers for Length and Width.';
+    } else {
+        let area = length * width;
+        
+        myOutInt.innerHTML = '<h3>Results:</h3>' + 
+                             'Area = Length &times; Width <br>' +
+                             `Area = ${length} &times; ${width} = ${area}`;
+    }
+}">
 
-  You do similar versions of this for integer, character, boolean, and float.<br>
-<br>
-Integer
+<hr>
+
+</body>
+</html>
