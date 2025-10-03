@@ -89,3 +89,56 @@
                              `Total Cost (const): <b>\$${totalCost.toFixed(2)}</b>`;
     }
 }"><br>
+
+<hr>
+
+<h2 align="center">4. Character (Single Letter)</h2>
+<p>
+    Combine the first letter from each input.
+</p>
+
+<p>
+    Letter 1 (let): <input id="myChar01" type="text" value="G"> <br><br>
+    Letter 2 (var): <input id="myChar02" type="text" value="C">
+</p>
+<span id="mySpan04">...</span><br><br>
+
+<input type="button" value="Combine Characters" onclick="{
+    let charA = document.getElementById('myChar01').value.substring(0, 1);
+    var charB = document.getElementById('myChar02').value.substring(0, 1);
+    const myOutChar = document.getElementById('mySpan04');
+    
+    myOutChar.innerHTML = 'Combined Chars: ' + (charA + charB);
+}"><br>
+
+<hr>
+
+<h2 align="center">5. Boolean (True/False)</h2>
+<p>
+    Check if the first number is greater than the second number.
+</p>
+
+<p>
+    Number 1 (let): <input id="myBool01" type="text" value="10"> <br><br>
+    Number 2 (var): <input id="myBool02" type="text" value="20">
+</p>
+<span id="mySpan05">...</span><br><br>
+
+<input type="button" value="Check Condition" onclick="{
+    let num1 = parseInt(document.getElementById('myBool01').value);
+    var num2 = parseInt(document.getElementById('myBool02').value);
+    const myOutBool = document.getElementById('mySpan05');
+    
+    if (isNaN(num1) || isNaN(num2)) {
+         myOutBool.innerHTML = 'Please enter valid numbers.';
+    } else {
+        const comparisonResult = (num1 > num2);
+        
+        myOutBool.innerHTML = `Is ${num1} greater than ${num2}? Result (const): <b>${comparisonResult}</b>`;
+    }
+}"><br>
+
+<hr>
+
+</body>
+</html>
