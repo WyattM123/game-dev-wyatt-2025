@@ -33,3 +33,57 @@
 <input type=button value="How many names are there?" onclick="{
     loopStuff()
 }"><br>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Sentence Generator</title>
+</head>
+<body>
+
+    <h1>Name Sentence Generator</h1>
+    <p>Enter a name and get a random story!</p>
+
+    <label for="nameInput">Your Name:</label>
+    <input 
+        type="text" 
+        id="nameInput" 
+        placeholder="e.g., Alex"
+        onkeypress="if(event.key === 'Enter') generateSentence()"
+    >
+    <button onclick="generateSentence()">Generate Story</button>
+
+    <div id="outputArea">
+        <p id="sentenceOutput">The generated sentence will appear here!</p>
+    </div>
+
+    <script>
+        const sentenceTemplates = [
+            "Today, {name} discovered a secret path to a garden full of talking squirrels.",
+            "It is known that {name} can perfectly balance a stack of cheezits on their nose.",
+            "In a sudden burst of creativity, {name} decided to write a symphony using only the screams of the damned.",
+            "If you need advice on playing checkers with newborn babies, {name} is the person to call.",
+            "A mysterious old book claimed {name} once saved the world with a single sock.",
+            "{name} realized the true output was the friends they made along the way.",
+            "{name}'s ability to nap for exactly 7 minutes and 42 seconds was truly legendary.",
+            "The ancient prophecy foretold the coming of {name}, who would bring great drawings of toads.",
+            "With a dramatic flourish, {name} unveiled their latest invention: an automatic milk drinking machine.",
+            "Last Tuesday, {name} accidentally swapped hats with a famous detective and solved a mystery.",
+        ];
+
+        function generateSentence() {
+            let name = document.getElementById('nameInput').value.trim();
+            if (name === "") name = "Someone";
+            
+            const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
+            const randomIndex = Math.floor(Math.random() * sentenceTemplates.length);
+            const template = sentenceTemplates[randomIndex];
+            
+            const newSentence = template.replace(/{name}/g, capitalizedName);
+            document.getElementById('sentenceOutput').textContent = newSentence;
+        }
+    </script>
+</body>
+</html>
