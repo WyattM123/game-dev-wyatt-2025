@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Retro Maze Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for the retro/dark feel */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+        }
+        canvas {
+            display: block;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 10;
+            text-align: center;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: auto;
+        }
+        #overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* Game Over overlay is now unused but kept hidden */
+        #gameOverOverlay {
+            display: none; 
+        }
+        .retro-title {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+            margin-bottom: 1rem;
+            color: #ff4d4d;
+        }
+        .retro-text {
+            font-size: 1.2rem;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            margin-top: 0.5rem;
+        }
+        .instruction-key {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.15rem;
+            border: 2px solid #00ff00;
+            border-radius: 4px;
+            background-color: rgba(0, 255, 0, 0.1);
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+        /* New styling for the popup message */
+        #messageBox {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            color: #00ff00;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 0 10px #00ff00;
+            z-index: 15; /* Above walls, below overlay */
+        }
+        #messageBox.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="overlay">
+        <h1 class="retro-title">RETRO 3D MAZE EXPLORER</h1>
+        <p class="retro-text">Explore the labyrinth</p>
+        <div class="retro-text mt-6">
+            <p>Movement:
+                <span class="instruction-key">W</span> (Forward)
+                <span class="instruction-key">A</span> (Left)
+                <span class="instruction-key">S</span> (Backward)
+                <span class="instruction-key">D</span> (Right)
+            </p>
+            <p class="mt-4">Fire Laser: <span class="instruction-key">Spacebar</span> (Blue) - Makes the Green Guy sulk for 30s.</p>
+            <p class="mt-4">Look: Move Mouse | Press ESC to unlock cursor.</p>
+        </div>
+    </div>
+    
+    <div id="gameOverOverlay">
+        GAME OVER
+    </div>
+
+    <div id="messageBox"></div>
+
+    <script>
+        // Global Three.js variables
+        let camera, scene, renderer;
+        let controlsEnabled = false;
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        let prevTime = performance.now();
+        let velocity = new THREE.Vector3();
+        const movementSpeed = 0.007; // World units per ms
+        let isGameOver = false;
+
+        // Weapon/Laser Variables
+        let handMesh; 
+        let lasers = [];
+        let lastShotTime = 0;
+        const shootCooldown = 200; // ms between shots
+        const laserSpeed = 500; // units per second
+        const laserDistance = 200; // units until cleanup
+        const laserMaxDistanceSq = laserDistance * laserDistance;
+        const raycaster = new THREE.Raycaster();
+        
+        // Enemy Variables
+        let enemyMesh;
+        let enemyMaterial; 
+        let smileTexture; 
+        let flatTexture;  
+        
+        // Green Guy State Variables
+        let isRecovering = false; // State for the 30-second flat face/freeze period
+        const recoveryDuration = 30000; // Total duration of flat face and freeze (30 seconds)
+        let messageBox; // HTML element for the message
+
+        // New constants for messaging
+        const ENEMY_RESPONSES = ["bruh", "ow", "how dare you"];
+        const TYPING_SPEED_MS = 80;
+        const MESSAGE_STAY_TIME_MS = 2000; // Time the message stays on screen after it's fully typed
+
+        // The 2D maze map (1 = wall, 0 = path)
+        const mazeMap = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+            [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        // Constants for the 3D world
+        const wallSize = 10;
+        const wallHeight = 10;
+        
+        // Player's initial position (in world coordinates, centered in a path block)
+        const startX = 1.5 * wallSize;
+        const startZ = 1.5 * wallSize;
+
+        // --- Helper Functions for Grid/World Conversion ---
+        function worldToGrid(worldCoord) {
+            return Math.floor(worldCoord / wallSize);
+        }
+
+        function gridToWorld(gridIndex) {
+            // Centers the world coordinate within a grid cell
+            return gridIndex * wallSize + wallSize / 2;
+        }
+
+        // --- Pointer Lock Setup (Unchanged) ---
+        const blocker = document.getElementById('overlay');
+        const canvas = document.createElement('canvas');
+        document.body.appendChild(canvas);
+
+        const pointerlockchange = function () {
+            if (document.pointerLockElement === document.body) {
+                controlsEnabled = true;
+                blocker.classList.add('hidden');
+            } else {
+                controlsEnabled = false;
+                if (!isGameOver) blocker.classList.remove('hidden');
+            }
+        };
+
+        const pointerlockerror = function (event) {
+            console.error('PointerLockError:', event);
+        };
+
+        blocker.addEventListener('click', function () {
+            if (!isGameOver) {
+                document.body.requestPointerLock = document.body.requestPointerLock || document.body.mozRequestPointerLock || document.body.webkitRequestPointerLock;
+                if (document.body.requestPointerLock) {
+                    document.body.requestPointerLock();
+                }
+            }
+        });
+
+        document.addEventListener('pointerlockchange', pointerlockchange, false);
+        document.addEventListener('mozpointerlockchange', pointerlockchange, false);
+        document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
+        document.addEventListener('pointerlockerror', pointerlockerror, false);
+        document.addEventListener('mozpointerlockerror', pointerlockerror, false);
+        document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
+
+        // --- Camera Rotation and Movement Setup (Unchanged) ---
+        let lon = 90; 
+        let lat = 0; 
+        const onMouseMove = function (event) {
+            if (controlsEnabled === false) return;
+            const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+            const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+            lon -= movementX * 0.1;
+            lat += movementY * 0.1;
+            lat = Math.max(-89.9, Math.min(89.9, lat));
+            const phi = THREE.MathUtils.degToRad(90 - lat);
+            const theta = THREE.MathUtils.degToRad(lon);
+            camera.rotation.setFromVector3(new THREE.Vector3(phi, theta, 0), 'YXZ');
+        };
+        document.addEventListener('mousemove', onMouseMove, false);
+
+        const onKeyDown = function (event) {
+            if (isGameOver) return;
+            switch (event.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyD': moveRight = true; break;
+                case 'Space': shootLaser(); break;
+            }
+        };
+
+        const onKeyUp = function (event) {
+            switch (event.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyD': moveRight = false; break;
+            }
+        };
+        document.addEventListener('keydown', onKeyDown, false);
+        document.addEventListener('keyup', onKeyUp, false);
+        
+        // --- Enemy Face Texture Helper ---
+        function makeFaceTexture(expressionType) {
+            const size = 64;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#00ff00'; // Green background for the Guy
+            ctx.fillRect(0, 0, size, size);
+            
+            ctx.fillStyle = '#000000'; // Black features
+            
+            // Eyes
+            ctx.beginPath();
+            ctx.arc(size * 0.35, size * 0.35, size * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(size * 0.65, size * 0.35, size * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = size * 0.05;
+            ctx.lineCap = 'round';
+
+            // Mouth / Expression logic
+            if (expressionType === 'smile') {
+                // Menacing Smile
+                ctx.beginPath();
+                ctx.arc(size * 0.5, size * 0.65, size * 0.2, 0, Math.PI, false);
+                ctx.stroke();
+            } else if (expressionType === 'flat') {
+                // Flat/Neutral line (for pain/sulk)
+                ctx.beginPath();
+                ctx.moveTo(size * 0.3, size * 0.7);
+                ctx.lineTo(size * 0.7, size * 0.7);
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        function setEnemyFace(type) {
+            if (!enemyMaterial) return;
+            if (type === 'smile') {
+                enemyMaterial.map = smileTexture;
+            } else if (type === 'flat') {
+                enemyMaterial.map = flatTexture;
+            }
+            enemyMaterial.needsUpdate = true;
+        }
+
+        // --- Handle Enemy Hit ---
+        function handleEnemyHit() {
+            // Prevent multiple simultaneous hits while recovering
+            if (isRecovering) return;
+
+            // 1. Initial visual changes and start freeze/sulk
+            setEnemyFace('flat'); 
+            
+            // Set state
+            isRecovering = true; 
+
+            console.log("Green Guy starts sulking (30s total).");
+
+            // Pick a random response
+            const message = ENEMY_RESPONSES[Math.floor(Math.random() * ENEMY_RESPONSES.length)];
+            const typingTime = message.length * TYPING_SPEED_MS;
+            
+            messageBox.textContent = ""; // Clear for typing
+            messageBox.classList.add('active');
+            
+            // Typewriter effect logic
+            let i = 0;
+            function type() {
+                if (i < message.length) {
+                    messageBox.textContent += message.charAt(i);
+                    i++;
+                    setTimeout(type, TYPING_SPEED_MS);
+                } else {
+                    // Typing is complete. Message stays active for MESSAGE_STAY_TIME_MS
+                }
+            }
+            type(); // Start typing
+
+            // Timer A: Stop message display (after typing time + short visual delay)
+            const totalMessageDuration = typingTime + MESSAGE_STAY_TIME_MS;
+            
+            setTimeout(() => {
+                messageBox.classList.remove('active');
+                console.log("Green Guy is now silently sulking.");
+            }, totalMessageDuration); 
+
+            // Timer B: End Recovery (30 seconds total, unchanged)
+            setTimeout(() => {
+                isRecovering = false;
+                setEnemyFace('smile'); // Return to menacing smile
+                console.log("Green Guy recovered and is menacing again.");
+            }, recoveryDuration); 
+        }
+
+        // --- Laser Firing Function (Now checks for hit) ---
+        function shootLaser() {
+            if (!controlsEnabled || isGameOver) return;
+            const time = performance.now();
+            
+            if (time > lastShotTime + shootCooldown) {
+                lastShotTime = time;
+
+                // 1. Setup Raycaster for collision
+                // Raycaster must be set to the center of the camera view (0, 0)
+                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+                let intersects = [];
+                
+                if (enemyMesh) {
+                    intersects = raycaster.intersectObject(enemyMesh);
+                }
+                
+                if (intersects.length > 0) {
+                    // Hit the enemy!
+                    handleEnemyHit();
+                    // Prevent visual laser creation if it hits immediately
+                    return; 
+                }
+
+                // 2. Visual Laser Creation (if no immediate hit)
+                const laserGeometry = new THREE.BoxGeometry(0.2, 0.2, 50); 
+                const laserMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, emissive: 0x00ffff }); // Bright Cyan
+                const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+
+                // Calculate laser start position far back behind the right shoulder
+                // X=Right (2.5), Y=Down (-0.8), Z=Back (3.5) relative to the camera
+                const localOffset = new THREE.Vector3(2.5, -0.8, 3.5); 
+                
+                // Get the position by applying the camera's world transformation to the local offset
+                const laserStartPos = localOffset.clone();
+                camera.localToWorld(laserStartPos); // Transforms local coordinates to world coordinates
+                
+                const direction = new THREE.Vector3();
+                camera.getWorldDirection(direction);
+
+                // Set laser position and properties
+                laser.position.copy(laserStartPos);
+
+                laser.userData = { 
+                    direction: direction, // Fires in the direction the camera is looking
+                    speed: laserSpeed,
+                    origin: laserStartPos.clone(),
+                    maxDistanceSq: laserMaxDistanceSq
+                };
+                
+                // Align the laser orientation with the direction it's firing
+                laser.quaternion.copy(camera.quaternion);
+                laser.translateZ(-laserGeometry.parameters.depth / 2);
+
+                lasers.push(laser);
+                scene.add(laser);
+            }
+        }
+
+        // --- Initialization ---
+        function init() {
+            // Get the message box element
+            messageBox = document.getElementById('messageBox');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); 
+
+            // Camera (First-person view)
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(startX, wallHeight * 0.5, startZ); 
+            camera.lookAt(startX + 1, wallHeight * 0.5, startZ); 
+
+            // Camera is added directly to the scene.
+            scene.add(camera); 
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Lighting
+            scene.add(new THREE.AmbientLight(0x404040, 5)); 
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(5, 10, 7.5);
+            scene.add(dirLight);
+
+            // Maze Geometry Creation
+            const wallMaterial = new THREE.MeshPhongMaterial({ color: 0x440000, flatShading: true }); 
+            const wallGeometry = new THREE.BoxGeometry(wallSize, wallHeight, wallSize);
+
+            const floorGeometry = new THREE.PlaneGeometry(mazeMap[0].length * wallSize, mazeMap.length * wallSize);
+            const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x1a1a1a, side: THREE.DoubleSide }); 
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = Math.PI / 2; 
+            floor.position.set(
+                (mazeMap[0].length * wallSize) / 2 - wallSize / 2,
+                0,
+                (mazeMap.length * wallSize) / 2 - wallSize / 2
+            );
+            scene.add(floor);
+
+            for (let z = 0; z < mazeMap.length; z++) {
+                for (let x = 0; x < mazeMap[z].length; x++) {
+                    if (mazeMap[z][x] === 1) {
+                        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                        wall.position.x = x * wallSize + wallSize / 2;
+                        wall.position.y = wallHeight / 2;
+                        wall.position.z = z * wallSize + wallSize / 2;
+                        scene.add(wall);
+                    }
+                }
+            }
+
+            // --- Enemy Sprite (The Green Guy) ---
+            
+            // Create the two necessary textures
+            smileTexture = makeFaceTexture('smile');
+            flatTexture = makeFaceTexture('flat');
+
+            const enemyGeometry = new THREE.PlaneGeometry(wallSize * 0.7, wallHeight); 
+            enemyMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                map: smileTexture, // Start with the smile
+                side: THREE.DoubleSide, 
+                transparent: false,
+                emissive: 0x00ff00, 
+                emissiveIntensity: 0.5 
+            }); 
+            enemyMesh = new THREE.Mesh(enemyGeometry, enemyMaterial);
+            enemyMesh.name = 'GreenGuy'; 
+
+            // Position at maze index (13, 1)
+            const enemyXIndex = 13;
+            const enemyZIndex = 1;
+            enemyMesh.position.set(
+                gridToWorld(enemyXIndex), 
+                wallHeight / 2, 
+                gridToWorld(enemyZIndex)
+            );
+            scene.add(enemyMesh);
+        }
+
+        // --- The Game Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isGameOver) {
+                renderer.render(scene, camera); 
+                return;
+            }
+
+            const time = performance.now();
+            const delta = (time - prevTime) / 1000; 
+
+            if (controlsEnabled === true) {
+                // Player Movement (Ghost Mode)
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                let dir = new THREE.Vector3();
+                if (moveForward) dir.z += 1;
+                if (moveBackward) dir.z -= 1;
+                if (moveLeft) dir.x -= 1;
+                if (moveRight) dir.x += 1;
+                
+                if (dir.lengthSq() > 0) {
+                    dir.normalize();
+                    velocity.x += dir.x * movementSpeed * delta * 10000;
+                    velocity.z += dir.z * movementSpeed * delta * 10000;
+                }
+
+                const currentRotation = new THREE.Euler(0, camera.rotation.y, 0, 'YXZ');
+                const forwardVector = new THREE.Vector3(0, 0, -1).applyEuler(currentRotation);
+                const rightVector = new THREE.Vector3(1, 0, 0).applyEuler(currentRotation);
+                
+                let deltaX = (forwardVector.x * velocity.z * delta + rightVector.x * velocity.x * delta);
+                let deltaZ = (forwardVector.z * velocity.z * delta + rightVector.z * velocity.x * delta);
+
+                camera.position.x += deltaX;
+                camera.position.z += deltaZ;
+                camera.position.y = wallHeight * 0.5;
+            }
+            
+            // --- Enemy Logic (Billboarding and Sulking) ---
+            if (enemyMesh) {
+                // If NOT recovering, billboard (default state: always face player)
+                if (!isRecovering) {
+                    enemyMesh.lookAt(camera.position.x, enemyMesh.position.y, camera.position.z);
+                } 
+                // If IS recovering (isRecovering is true), the billboarding is skipped. 
+                // The mesh holds its last known rotation, freezing its gaze.
+            }
+
+            // --- Laser Update (Unchanged) ---
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                const laser = lasers[i];
+                const userData = laser.userData;
+                const distance = userData.speed * delta;
+                
+                laser.position.addScaledVector(userData.direction, distance);
+                const distanceTraveledSq = laser.position.distanceToSquared(userData.origin);
+
+                if (distanceTraveledSq > userData.maxDistanceSq) {
+                    scene.remove(laser);
+                    lasers.splice(i, 1);
+                }
+            }
+
+            prevTime = time;
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resizing (Unchanged)
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize, false);
+
+
+        window.onload = function () {
+            init();
+            animate();
+        };
+
+    </script>
+</body>
+</html>
