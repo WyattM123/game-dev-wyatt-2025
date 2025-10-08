@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input/Output Repeater & Different Functions</title>
+    <title>Input/Output Repeater & Different Functions (Barebones)</title>
 </head>
 <body>
 
-    <h2 align="center">t1a08-in-out-wyatt.html</h2>
+    <h2 align="center">t1a08-in-out-wyatt.html (Barebones)</h2>
     <hr>
 
     <script>
+        // --- Core Functions ---
+
         function myDoStuff(index){
+            // Displays the raw input value
             document.getElementById('mySpan0' + index).innerHTML = document.getElementById('myNum0' + index).value
         }
 
         function loopStuff(index){
+            // Repeats the input value a random number of times
             let myIn = document.getElementById('myNum0' + index)
             let myOut = document.getElementById('mySpan0' + index)
             let name = myIn.value
@@ -32,49 +36,67 @@
         }
         
         function countCharacters(index){
+            // Counts the number of characters in the input
             let name = document.getElementById('myNum0' + index).value;
             let count = name.length;
             document.getElementById('mySpan0' + index).innerHTML = "The text has <b>" + count + "</b> characters.";
         }
 
         function reverseString(index){
+            // Reverses the input string
             let name = document.getElementById('myNum0' + index).value;
-            let reversed = name.split('').reverse().join(''); 
+            let reversed = name.split('').reverse().join('');  
             document.getElementById('mySpan0' + index).innerHTML = "Reversed: <b>" + reversed + "</b>";
         }
 
+        /* * UPDATED FUNCTION: screamWord
+         * Duplicates vowels in-place (e.g., C-A-T becomes C-AAA-T) 
+         * and appends a repeated last letter and exclamations.
+        */
         function screamWord(index){
             let name = document.getElementById('myNum0' + index).value;
             let upper = name.toUpperCase();
             
             if (upper.length === 0) {
-                document.getElementById('mySpan0' + index).innerHTML = "SCREAM!";
+                document.getElementById('mySpan0' + index).innerHTML = '<b>SCREAM!</b>';
                 return;
             }
 
-            let screamed = upper;
-            const vowels = ['A', 'E', 'I', 'O', 'U'];
-            
-            for (const vowel of vowels) {
-                if (upper.includes(vowel)) {
-                    let repeats = Math.floor(Math.random() * 4) + 1;
-                    screamed += vowel.repeat(repeats);
+            let augmentedWord = '';
+            // Using a Set for efficient vowel lookup
+            const vowels = new Set(['A', 'E', 'I', 'O', 'U']); 
+
+            // 1. Iterate through the word to repeat vowels in place.
+            for (let i = 0; i < upper.length; i++) {
+                const char = upper[i];
+                
+                if (vowels.has(char)) {
+                    // Repeat the vowel 2 to 5 times (1 original + 1 to 4 extra)
+                    let repeats = Math.floor(Math.random() * 4) + 2; 
+                    augmentedWord += char.repeat(repeats);
+                } else {
+                    augmentedWord += char; 
                 }
             }
-
+            
+            // 2. Append the repeated last letter and exclamations to the *end*.
             let lastLetter = upper.slice(-1); 
-
+            
+            // Repeat last letter 5 to 10 times total 
             let letterRepeats = Math.floor(Math.random() * 6) + 5; 
             let extraLetters = lastLetter.repeat(letterRepeats);
             
+            // Repeat exclamations 3 to 6 times total
             let exclamationRepeats = Math.floor(Math.random() * 4) + 3; 
             let exclamations = "!".repeat(exclamationRepeats);
 
-            screamed = screamed + extraLetters + exclamations;
-            document.getElementById('mySpan0' + index).innerHTML = "SCREAMED: <b>" + screamed + "</b>";
+            let finalScream = augmentedWord + extraLetters + exclamations;
+
+            document.getElementById('mySpan0' + index).innerHTML = 'SCREAMED: <b>' + finalScream + '</b>';
         }
 
         function countVowels(index){
+            // Counts how many vowels are in the input
             let name = document.getElementById('myNum0' + index).value;
             let matches = name.match(/[aeiou]/gi);
             let count = matches ? matches.length : 0;
@@ -82,16 +104,19 @@
         }
 
         function scrambleWord(index){
+            // Randomly scrambles the letters of the input word (Fisher-Yates shuffle)
             let name = document.getElementById('myNum0' + index).value;
             let chars = name.split('');
             for (let i = chars.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [chars[i], chars[j]] = [chars[j], chars[i]]; 
+                [chars[i], chars[j]] = [chars[j], chars[i]];
             }
             let scrambled = chars.join('');
             document.getElementById('mySpan0' + index).innerHTML = "Scrambled: <b>" + scrambled + "</b>";
         }
 
+
+        // --- Sentence Generator Functions ---
 
         const sentenceTemplates = [
             "Today, {name} discovered a secret path to a garden full of talking squirrels.",
@@ -120,6 +145,7 @@
     </script>
 
 
+    <!-- Function Containers -->
     <div>
         <h3>Loop Repeater</h3>
         <input id="myNum01" type="text" value="wyatt"><br>
@@ -185,6 +211,7 @@
             type="text"
             id="nameInput"
             placeholder="e.g., Alex"
+            value="Alex"
             onkeypress="if(event.key === 'Enter') generateSentence()"
         >
         <button onclick="generateSentence()">Generate Story</button>
@@ -196,3 +223,4 @@
 
 </body>
 </html>
+
