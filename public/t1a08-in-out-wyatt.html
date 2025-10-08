@@ -52,6 +52,16 @@
                 return;
             }
 
+            let screamed = upper;
+            const vowels = ['A', 'E', 'I', 'O', 'U'];
+            
+            for (const vowel of vowels) {
+                if (upper.includes(vowel)) {
+                    let repeats = Math.floor(Math.random() * 4) + 1;
+                    screamed += vowel.repeat(repeats);
+                }
+            }
+
             let lastLetter = upper.slice(-1); 
 
             let letterRepeats = Math.floor(Math.random() * 6) + 5; 
@@ -60,7 +70,7 @@
             let exclamationRepeats = Math.floor(Math.random() * 4) + 3; 
             let exclamations = "!".repeat(exclamationRepeats);
 
-            let screamed = upper + extraLetters + exclamations;
+            screamed = screamed + extraLetters + exclamations;
             document.getElementById('mySpan0' + index).innerHTML = "SCREAMED: <b>" + screamed + "</b>";
         }
 
@@ -120,8 +130,8 @@
     <hr>
 
     <div>
-        <h3>How many characters are there?</h3>
-        <input id="myNum02" type="text" value="Andy James Tran"><br>
+        <h3>How many characters?</h3>
+        <input id="myNum02" type="text" value="AndyJamesTran"><br>
         <span id="mySpan02">...</span><br>
         <input type="button" value="Display Once" onclick="myDoStuff(2)"><br>
         <input type="button" value="Count Letters" onclick="countCharacters(2)"><br>
@@ -129,7 +139,7 @@
     <hr>
 
     <div>
-        <h3>Reverse</h3>
+        <h3>String Reverser</h3>
         <input id="myNum03" type="text" value="Logang"><br>
         <span id="mySpan03">...</span><br>
         <input type="button" value="Display Once" onclick="myDoStuff(3)"><br>
@@ -138,7 +148,7 @@
     <hr>
 
     <div>
-        <h3>SCREAM THE WORD</h3>
+        <h3>SCREAM THE WORD!</h3>
         <input id="myNum04" type="text" value="Mr Ellis"><br>
         <span id="mySpan04">...</span><br>
         <input type="button" value="Display Once" onclick="myDoStuff(4)"><br>
@@ -147,8 +157,8 @@
     <hr>
 
     <div>
-        <h3>How many vowels are there?</h3>
-        <input id="myNum05" type="text" value="Banana"><br>
+        <h3>Vowel Counter</h3>
+        <input id="myNum05" type="text" value="Animation"><br>
         <span id="mySpan05">...</span><br>
         <input type="button" value="Display Once" onclick="myDoStuff(5)"><br>
         <input type="button" value="Count Vowels" onclick="countVowels(5)"><br>
@@ -156,7 +166,7 @@
     <hr>
 
     <div>
-        <h3>Word Scrambler</h3>
+        <h3>Scramble That Thang</h3>
         <input id="myNum06" type="text" value="Cameron"><br>
         <span id="mySpan06">...</span><br>
         <input type="button" value="Display Once" onclick="myDoStuff(6)"><br>
@@ -186,4 +196,3 @@
 
 </body>
 </html>
-
