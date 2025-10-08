@@ -1,65 +1,88 @@
-<script>
-    function myDoStuff(){
-        document.getElementById('mySpan01').innerHTML = document.getElementById('myNum01').value
-    }
-
-    function loopStuff(){
-        let myIn = document.getElementById('myNum01')
-        let myOut = document.getElementById('mySpan01')
-        let name = myIn.value
-        let output = ''
-        
-        let randomCount = Math.floor(Math.random() * 50) + 1;
-
-        output += 'Random number of displays chosen: <b>' + randomCount + '</b><br><br>'
-
-        for(let i = 0; i < randomCount; i++){
-            output += (i + 1) + ". " + name + "<br>"
-        }
-
-        myOut.innerHTML = output
-    }
-</script>
-
-<h2 align=center>t1a08-in-out-wyatt.hmtl</h2>
-
-<input id="myNum01" type=text value="wyatt" ><br>
-<span id="mySpan01">...</span><br>
-
-<input type=button value="Display Once" onclick="{
-    myDoStuff()
-}"><br>
-
-<input type=button value="How many names are there?" onclick="{
-    loopStuff()
-}"><br>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Sentence Generator</title>
+    <title>Input/Output Repeater & Different Functions</title>
 </head>
 <body>
 
-    <h1>Name Sentence Generator</h1>
-    <p>Enter a name and get a random story!</p>
-
-    <label for="nameInput">Your Name:</label>
-    <input 
-        type="text" 
-        id="nameInput" 
-        placeholder="e.g., Alex"
-        onkeypress="if(event.key === 'Enter') generateSentence()"
-    >
-    <button onclick="generateSentence()">Generate Story</button>
-
-    <div id="outputArea">
-        <p id="sentenceOutput">The generated sentence will appear here!</p>
-    </div>
+    <h2 align="center">t1a08-in-out-wyatt.html</h2>
+    <hr>
 
     <script>
+        function myDoStuff(index){
+            document.getElementById('mySpan0' + index).innerHTML = document.getElementById('myNum0' + index).value
+        }
+
+        function loopStuff(index){
+            let myIn = document.getElementById('myNum0' + index)
+            let myOut = document.getElementById('mySpan0' + index)
+            let name = myIn.value
+            let output = ''
+
+            let randomCount = Math.floor(Math.random() * 50) + 1;
+            output += 'Random number of displays chosen: <b>' + randomCount + '</b><br><br>'
+
+            for(let i = 0; i < randomCount; i++){
+                output += (i + 1) + ". " + name + "<br>"
+            }
+
+            myOut.innerHTML = output
+        }
+        
+        function countCharacters(index){
+            let name = document.getElementById('myNum0' + index).value;
+            let count = name.length;
+            document.getElementById('mySpan0' + index).innerHTML = "The text has <b>" + count + "</b> characters.";
+        }
+
+        function reverseString(index){
+            let name = document.getElementById('myNum0' + index).value;
+            let reversed = name.split('').reverse().join(''); 
+            document.getElementById('mySpan0' + index).innerHTML = "Reversed: <b>" + reversed + "</b>";
+        }
+
+        function screamWord(index){
+            let name = document.getElementById('myNum0' + index).value;
+            let upper = name.toUpperCase();
+            
+            if (upper.length === 0) {
+                document.getElementById('mySpan0' + index).innerHTML = "SCREAM!";
+                return;
+            }
+
+            let lastLetter = upper.slice(-1); 
+
+            let letterRepeats = Math.floor(Math.random() * 6) + 5; 
+            let extraLetters = lastLetter.repeat(letterRepeats);
+            
+            let exclamationRepeats = Math.floor(Math.random() * 4) + 3; 
+            let exclamations = "!".repeat(exclamationRepeats);
+
+            let screamed = upper + extraLetters + exclamations;
+            document.getElementById('mySpan0' + index).innerHTML = "SCREAMED: <b>" + screamed + "</b>";
+        }
+
+        function countVowels(index){
+            let name = document.getElementById('myNum0' + index).value;
+            let matches = name.match(/[aeiou]/gi);
+            let count = matches ? matches.length : 0;
+            document.getElementById('mySpan0' + index).innerHTML = "It has <b>" + count + "</b> vowels (a, e, i, o, u).";
+        }
+
+        function scrambleWord(index){
+            let name = document.getElementById('myNum0' + index).value;
+            let chars = name.split('');
+            for (let i = chars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [chars[i], chars[j]] = [chars[j], chars[i]]; 
+            }
+            let scrambled = chars.join('');
+            document.getElementById('mySpan0' + index).innerHTML = "Scrambled: <b>" + scrambled + "</b>";
+        }
+
+
         const sentenceTemplates = [
             "Today, {name} discovered a secret path to a garden full of talking squirrels.",
             "It is known that {name} can perfectly balance a stack of cheezits on their nose.",
@@ -76,14 +99,91 @@
         function generateSentence() {
             let name = document.getElementById('nameInput').value.trim();
             if (name === "") name = "Someone";
-            
+
             const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1);
             const randomIndex = Math.floor(Math.random() * sentenceTemplates.length);
             const template = sentenceTemplates[randomIndex];
-            
+
             const newSentence = template.replace(/{name}/g, capitalizedName);
             document.getElementById('sentenceOutput').textContent = newSentence;
         }
     </script>
+
+
+    <div>
+        <h3>Loop Repeater</h3>
+        <input id="myNum01" type="text" value="wyatt"><br>
+        <span id="mySpan01">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(1)"><br>
+        <input type="button" value="Random Repeats (1-50)" onclick="loopStuff(1)"><br>
+    </div>
+    <hr>
+
+    <div>
+        <h3>How many characters are there?</h3>
+        <input id="myNum02" type="text" value="Andy James Tran"><br>
+        <span id="mySpan02">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(2)"><br>
+        <input type="button" value="Count Letters" onclick="countCharacters(2)"><br>
+    </div>
+    <hr>
+
+    <div>
+        <h3>Reverse</h3>
+        <input id="myNum03" type="text" value="Logang"><br>
+        <span id="mySpan03">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(3)"><br>
+        <input type="button" value="Reverse Text" onclick="reverseString(3)"><br>
+    </div>
+    <hr>
+
+    <div>
+        <h3>SCREAM THE WORD</h3>
+        <input id="myNum04" type="text" value="Mr Ellis"><br>
+        <span id="mySpan04">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(4)"><br>
+        <input type="button" value="SCREAM THE WORD" onclick="screamWord(4)"><br>
+    </div>
+    <hr>
+
+    <div>
+        <h3>How many vowels are there?</h3>
+        <input id="myNum05" type="text" value="Banana"><br>
+        <span id="mySpan05">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(5)"><br>
+        <input type="button" value="Count Vowels" onclick="countVowels(5)"><br>
+    </div>
+    <hr>
+
+    <div>
+        <h3>Word Scrambler</h3>
+        <input id="myNum06" type="text" value="Cameron"><br>
+        <span id="mySpan06">...</span><br>
+        <input type="button" value="Display Once" onclick="myDoStuff(6)"><br>
+        <input type="button" value="Scramble Word" onclick="scrambleWord(6)"><br>
+    </div>
+
+
+    <hr>
+    
+    <div>
+        <h2>Original Name Sentence Generator</h2>
+        <p>Enter a name and get a random story!</p>
+
+        <label for="nameInput">Your Name:</label>
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="e.g., Alex"
+            onkeypress="if(event.key === 'Enter') generateSentence()"
+        >
+        <button onclick="generateSentence()">Generate Story</button>
+
+        <div id="outputArea">
+            <p id="sentenceOutput">The generated sentence will appear here!</p>
+        </div>
+    </div>
+
 </body>
 </html>
+
