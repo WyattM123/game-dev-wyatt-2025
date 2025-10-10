@@ -1,10 +1,6 @@
 <h1 align=centert1a12-events-wyatt.html</h1>
-  You make at least 8 HTML events using different HTML tags<br>
-
   <button onclick="{console.log('hi')}">ctrl-shift-i for console</button><br><br>
   <input type=button value="mouseOver" onMouseOver="{this.style.backgroundColor='green'}"><br>
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,153 +8,122 @@
 </head>
 
 <body onresize="handleBodyResize()">
+    <h1>T1A12 - Visible HTML Events (Barebones)</h1>
+    You must make at least 8 HTML events using different HTML tags.<br><br>
 
-    <div id="resize-output" style="padding: 5px; border: 1px solid black; margin-bottom: 20px;">
-        Window Width: <span id="window-width">Loading...</span>px
+    <div id="resize-output" style="padding: 5px; border: 1px solid black; margin-bottom: 10px;">
+        1. Window Resize (Body Tag: onresize)<br>
+        Width: <span id="window-width">Loading...</span>px
     </div>
 
-    <button id="color-button" onclick="handleButtonClick()" style="border: 2px solid #000;">1. Click Me to Change Style (Button Tag)</button>
+    <label>2. Click Event (Button Tag: onclick)</label>
+    <button id="color-button" onclick="handleButtonClick()" style="border: 2px solid #000;">Click Me</button>
     <br><br>
 
-    <label for="text-input">2. Enter 5+ Characters and Click Away:</label>
+    <label for="text-input">3. Blur Event (Input Tag: onblur)</label>
     <input type="text" id="text-input" onblur="handleInputBlur()">
-    <p id="blur-message" style="color: grey; font-size: small;"></p>
+    <p id="blur-message" style="color: grey;"></p>
     <br>
 
-    <label for="color-select">3. Choose a Color (Select Tag):</label>
+    <label for="color-select">4. Change Event (Select Tag: onchange)</label>
     <select id="color-select" onchange="handleSelectChange(this.value)">
         <option value="white">White</option>
         <option value="lightgreen">Green</option>
         <option value="yellow">Yellow</option>
         <option value="lightblue">Blue</option>
     </select>
-    <div id="select-output" style="width: 100px; height: 30px; margin-top: 5px; border: 1px solid #ccc;"></div>
+    <div id="select-output" style="width: 150px; height: 30px; margin-top: 5px; border: 1px solid #ccc;"></div>
     <br>
 
-    <!-- 5. Tag: div, Event: onmousemove (Visible Action: Changes color gradient based on mouse position) -->
-    <div id="mouse-area" onmousemove="handleDivMove(event)" style="width: 300px; height: 100px; border: 2px dashed purple; display: flex; align-items: center; justify-content: center; text-align: center;">
+    <label>5. Mouse Move Event (Div Tag: onmousemove)</label>
+    <div id="mouse-area" onmousemove="handleDivMove(event)" style="width: 250px; height: 80px; border: 2px dashed purple; text-align: center;">
+        Move mouse here
     </div>
     <br>
 
+    <label>6. Reset Event (Form Tag: onreset)</label>
     <form id="my-form" onreset="handleFormReset()">
-        <label>5. Try Typing, Then Hit Reset:</label>
-        <input type="text" value="Some value">
-        <input type="reset" value="Reset (Form Tag)">
-        <p id="reset-status" style="color: orange; font-size: small;"></p>
+        <input type="text" value="Original Value">
+        <input type="reset" value="Reset Form">
+        <p id="reset-status"></p>
     </form>
     <br>
 
-    <label for="key-area">6. Type in the Area (Textarea Tag):</label>
-    <br>
-    <textarea id="key-area" onkeyup="handleKeyUp(this.value)" rows="3" cols="30" placeholder="Count your characters..."></textarea>
-    <p id="char-count" style="font-size: small;">Characters: 0</p>
+    <label for="key-area">7. Key Up Event (Textarea Tag: onkeyup)</label>
+    <textarea id="key-area" onkeyup="handleKeyUp(this.value)" rows="3" cols="30" placeholder="Type here..."></textarea>
+    <p id="char-count">Characters: 0</p>
     <br>
 
-    <p>7. Press Tab or Click the Link (Anchor Tag):</p>
-    <a href="javascript:void(0);" id="focus-link" onfocus="handleLinkFocus()" onblur="handleLinkBlur()" style="border: 1px solid #000; padding: 5px; text-decoration: none;">
+    <label>8. Focus/Blur Events (Anchor Tag: onfocus / onblur)</label>
+    <a href="#" id="focus-link" onfocus="handleLinkFocus()" onblur="handleLinkBlur()" style="border: 1px solid blue; padding: 5px; text-decoration: none;">
         Focusable Link
     </a>
+    <p id="link-status" style="margin-top: 5px;"></p>
     <br><br>
 
-
     <script>
+        function handleLinkFocus() {
+            document.getElementById('link-status').textContent = "LINK IS FOCUSED";
+            document.getElementById('link-status').style.color = 'green';
+        }       
+        function handleLinkBlur() {
+            document.getElementById('link-status').textContent = "FOCUS LOST";
+            document.getElementById('link-status').style.color = 'red';
+        }
         function handleBodyResize() {
             const width = window.innerWidth;
             document.getElementById('window-width').textContent = width;
-            // Uses light, muted colors for background based on size
             document.getElementById('resize-output').style.backgroundColor = width < 600 ? '#f0f0ff' : '#fff0f0';
         }
 
         window.onload = function() {
             handleBodyResize();
         };
-
         function handleButtonClick() {
             const button = document.getElementById('color-button');
-            const currentStyle = button.style.borderStyle;
-            
-            button.style.backgroundColor = '';
-            button.style.color = '';
-
+            const currentStyle = button.style.borderStyle;        
             if (currentStyle === 'dashed') {
                 button.style.borderStyle = 'solid';
-                button.textContent = "1. Click Me to Change Style (Button Tag)";
             } else {
                 button.style.borderStyle = 'dashed';
-                button.textContent = "Wow! It changed style!";
             }
         }
-
         function handleInputBlur() {
             const input = document.getElementById('text-input');
             const message = document.getElementById('blur-message');
             
             if (input.value.length >= 5) {
                 input.style.borderColor = 'green';
-                message.textContent = "Success: Input is long enough!";
+                message.textContent = "Success: Long enough!";
                 message.style.color = 'green';
             } else {
                 input.style.borderColor = 'red';
-                message.textContent = "Error: Need at least 5 characters.";
+                message.textContent = "Error: Too short.";
                 message.style.color = 'red';
             }
         }
-
         function handleSelectChange(value) {
             const outputDiv = document.getElementById('select-output');
             outputDiv.style.backgroundColor = value;
-            outputDiv.textContent = `Set to: ${value}`;
+            outputDiv.textContent = `Set: ${value}`;
         }
-
-        function handleDivMove(event) {
             const div = document.getElementById('mouse-area');
             const rect = div.getBoundingClientRect();
-            // Calculate relative position (0 to 1)
             const x = (event.clientX - rect.left) / rect.width;
             const y = (event.clientY - rect.top) / rect.height;
-
             const r = Math.round(x * 255);
-            const b = Math.round(y * 255);
-            
+            const b = Math.round(y * 255);            
             div.style.backgroundColor = `rgb(${r}, 150, ${b})`;
         }
-
-        // 6. form: onreset
         function handleFormReset() {
             setTimeout(() => {
-                const status = document.getElementById('reset-status');
-                status.textContent = "FORM RESET: All inputs are now cleared/defaulted.";
-                status.style.color = 'darkorange';
+                document.getElementById('reset-status').textContent = "Form was reset!";
             }, 10); 
             return true;
         }
-
         function handleKeyUp(value) {
-            const count = value.length;
-            const output = document.getElementById('char-count');
-            output.textContent = `Characters: ${count}`;
-            
-            if (count > 10) {
-                output.style.color = 'red';
-            } else {
-                output.style.color = 'green';
-            }
+            document.getElementById('char-count').textContent = `Characters: ${value.length}`;
         }
-
-        function handleLinkFocus() {
-            const link = document.getElementById('focus-link');
-            link.style.borderWidth = '3px';
-            link.style.backgroundColor = '';
-            link.textContent = "Link is FOCUSED!";
-        }
-
-        function handleLinkBlur() {
-            const link = document.getElementById('focus-link');
-            link.style.borderWidth = '1px';
-            link.style.backgroundColor = '';
-            link.textContent = "Focusable Link";
-        }
-
     </script>
 
 </body>
