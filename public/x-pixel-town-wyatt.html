@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Town Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body {
+            /* Initial background color, will be overridden by the canvas */
+            background-color: #7fc7ff; 
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 10vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #game-container {
+            border: 8px solid #3366ff;
+            box-shadow: 0 0 30px rgba(51, 102, 255, 0.7);
+            background: #7fc7ff; 
+            max-width: 90vw;
+            width: 800px;
+            aspect-ratio: 16 / 9;
+            border-radius: 4px;
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            /* Critical for the pixelated look */
+            image-rendering: pixelated; 
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            background-color: #7fc7ff; 
+        }
+
+        #controls {
+            margin-top: 20px;
+            color: #1a1a2e; 
+            font-size: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff6600; 
+            text-shadow: 0 0 5px #ffcc00;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .action-button {
+            padding: 8px 16px;
+            background-color: #ff6600;
+            color: #1a1a2e;
+            border: 2px solid #ffcc00;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            font-size: 0.75rem;
+        }
+
+        .action-button:hover {
+            background-color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-xl md:text-2xl">PIXEL TOWN EXPLORER</h1>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <div id="controls">
+        <p>A/D or ←/→ to Move | SPACE/W or ↑ to Jump</p>
+        <div class="button-group">
+            <button class="action-button" onclick="resetGame()">Generate New Town & Season</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME CONSTANTS ---
+        const CANVAS_WIDTH = 800; 
+        const CANVAS_HEIGHT = 450;
+        const TILE_SIZE = 20; 
+        const GROUND_HEIGHT = TILE_SIZE * 3; 
+        const ROOF_HEIGHT_TILES = 1;
+
+        // Physics constants (Adjusted for even slower jump ascent)
+        const GRAVITY = 0.3; // Significantly reduced gravity for floaty jump
+        const JUMP_POWER = -22; // Increased to compensate for reduced gravity and maintain height
+        const PLAYER_SPEED = 6;
+        const PLAYER_SIZE = TILE_SIZE;      
+        const PLAYER_HEIGHT_TILES = 2;    
+        const NUM_HOUSES = 50; 
+        const HOUSE_MAX_WIDTH_TILES = 12; 
+        const HOUSE_MIN_WIDTH_TILES = 5;
+        const HOUSE_MAX_HEIGHT_TILES = 12; 
+        const HOUSE_MIN_HEIGHT_TILES = 6;
+        const MAX_WINDOW_COUNT = 8; 
+        const WORLD_WIDTH = 50000; 
+        const MIN_WIDTH_FOR_DETAIL = 8; 
+        const TOWN_HALL_W_TILES = 20; 
+        const TOWN_HALL_H_TILES = 12; 
+        const NUM_TOWN_NPCS = 20; 
+        const NUM_PLAZA_VISITORS = 3; 
+        const PERSON_SPEED = 2; 
+        const PERSON_TALK_RANGE = TILE_SIZE * 3; 
+        const PERSON_TALK_DURATION = 120; 
+        const TREE_W = TILE_SIZE * 2; 
+        const TREE_MIN_H = TILE_SIZE * 15;
+        const TREE_MAX_H = TILE_SIZE * 20;
+        const CAMPSITE_CHANCE = 0.5; 
+        const CAMP_FIRE_H = TILE_SIZE;
+        const PLAZA_CHANCE = 0.2; 
+        const PLAZA_MIN_WIDTH_TILES = 15; 
+        const PLAZA_MAX_WIDTH_TILES = 25; 
+        const SHOP_CHANCE = 0.3; 
+        const SHOP_NAMES = ["PIZZA", "HOTEL", "ODDITIES", "DAVID'S", "BAKERY", "BOOKS", "PETS", "EATERY", "BARBER", "GROCERY", "ARCADE"];
+        const BENCH_W_TILES = 3; 
+        const PARK_CHANCE = 0.3; 
+
+        // --- BASE COLORS (Used for things that don't change much) ---
+        const COLOR_PLAYER = '#ff0066';
+        const COLOR_WINDOW_DEFAULT = '#add8e6'; 
+        const COLOR_WINDOW_LIT = '#ffcc00';     
+        const COLOR_WINDOW_DARK = '#222222';    
+        const COLOR_DOOR = '#8b4513';
+        const COLOR_TEXT = '#1a1a2e';
+        const COLOR_SPEECH_BUBBLE = '#ffffff'; 
+        const COLOR_CONCRETE = '#a9a9a9'; 
+        const COLOR_PAVEMENT = '#708090'; 
+        const COLOR_FOUNTAIN_STONE = '#555555';
+        const COLOR_FOUNTAIN_WATER = '#00bfff';
+        const COLOR_FIRE = '#ff6600';
+        const COLOR_SMOKE = '#cccccc';
+        const COLOR_TENT = '#800080'; 
+        const COLOR_BENCH = '#6b4226'; 
+        const COLOR_SIGNPOST = '#8b4513'; 
+        const COLOR_TRASHCAN = '#333333'; 
+
+        // --- SEASONAL CONSTANTS ---
+        const SEASONS = ['sunny', 'fall', 'rain', 'winter'];
+        const TIMES_OF_DAY = ['day', 'night'];
+        
+        // Default (Sunny) Colors
+        const DEFAULT_SKY = '#7fc7ff'; 
+        const DEFAULT_GROUND = '#50b550'; 
+        const DEFAULT_FOLIAGE = '#228B22'; 
+        const DEFAULT_TRUNK = '#8B4513'; 
+
+        // Fall Colors
+        const FALL_FOLIAGE_COLORS = ['#d2691e', '#ff8c00', '#da600b', '#c45100', '#e9967a', '#b8860b']; 
+
+        // Night Colors
+        const NIGHT_SKY = '#1a1a2e';
+        const NIGHT_GROUND_OVERLAY = 'rgba(0, 0, 0, 0.4)'; 
+
+        // --- GAME STATE ---
+        let canvas, ctx;
+        let player = {};
+        let world = {
+            houses: [],
+            people: [], 
+            bases: [], 
+            trees: [], 
+            campsite: null, 
+            plaza: null, 
+            props: [], 
+            ground: { y: CANVAS_HEIGHT - GROUND_HEIGHT, x: 0, w: WORLD_WIDTH, h: GROUND_HEIGHT },
+            forestStartX: WORLD_WIDTH * 0.9, 
+            
+            // Dynamic World State for Seasons & Time of Day
+            currentSeason: 'sunny', 
+            currentTimeOfDay: 'day', 
+            skyColor: DEFAULT_SKY,
+            groundColor: DEFAULT_GROUND,
+            ambientLightFactor: 1.0, 
+        };
+        let keys = {};
+        let cameraX = 0; 
+        let nextPersonId = 0; 
+        
+        // Particle arrays
+        let rainParticles = [];
+        let snowParticles = [];
+
+
+        // --- UTILITY FUNCTIONS ---
+        /** Generates a random hexadecimal color string. */
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        /** Generates a fixed, non-flashing color for scarves. */
+        function getRandomFixedScarfColor() {
+            const scarfHues = ['#ff0000', '#00ff00', '#ffa500', '#ffffff', '#0000ff', '#800080', '#00ffff'];
+            return scarfHues[Math.floor(Math.random() * scarfHues.length)];
+        }
+
+
+        /** Generates a warm color (Yellow, Orange, Gold) for the Town Hall. */
+        function getRandomWarmColor() {
+            const warmHues = [
+                '#FFD700', 
+                '#FFC300', 
+                '#FF8C00', 
+                '#FFA500', 
+                '#FFFF00', 
+                '#FFDA6B' 
+            ];
+            return warmHues[Math.floor(Math.random() * warmHues.length)];
+        }
+
+
+        /** Darkens a hex color by a fixed percentage (for roofs or details). */
+        function getDarkerColor(hex, factor = 0.7) {
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+
+            r = Math.floor(r * factor);
+            g = Math.floor(g * factor);
+            b = Math.floor(b * factor);
+
+            return '#' + 
+                r.toString(16).padStart(2, '0') + 
+                g.toString(16).padStart(2, '0') + 
+                b.toString(16).padStart(2, '0');
+        }
+
+        /** Simple AABB collision detection. */
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.w &&
+                   rect1.x + rect1.w > rect2.x &&
+                   rect1.y < rect2.y + rect2.h &&
+                   rect1.y + rect1.h > rect2.y;
+        }
+
+
+        // --- WORLD GENERATION ---
+        function generateHouse(xOffset) { 
+            const wTiles = Math.floor(Math.random() * (HOUSE_MAX_WIDTH_TILES - HOUSE_MIN_WIDTH_TILES) + HOUSE_MIN_WIDTH_TILES);
+            const hTiles = Math.floor(Math.random() * (HOUSE_MAX_HEIGHT_TILES - HOUSE_MIN_HEIGHT_TILES) + HOUSE_MIN_HEIGHT_TILES);
+            const totalW = wTiles * TILE_SIZE;
+            const totalH = hTiles * TILE_SIZE;
+            const x = Math.floor((xOffset + TILE_SIZE) / TILE_SIZE) * TILE_SIZE; 
+            const y = world.ground.y - totalH;
+            const color = getRandomColor();
+            const roofColor = getDarkerColor(color);
+            
+            // Initialization of all array variables
+            let segments = [];
+            let roofPlatforms = []; 
+            let details = []; 
+            let doors = []; 
+            let door1 = null;
+
+            const LShapeOdds = Math.random();
+            const LShapeType = LShapeOdds < 0.4 ? (Math.random() < 0.5 ? 'LEFT' : 'RIGHT') : 'NONE'; 
+            const bodyHTiles = hTiles - ROOF_HEIGHT_TILES;
+            const bodyH = bodyHTiles * TILE_SIZE;
+            const yBodyStart = y + (ROOF_HEIGHT_TILES * TILE_SIZE);
+            let w1 = 0;
+            let h2 = 0;
+            
+            if (LShapeType === 'NONE') { segments.push({ x: x, y: yBodyStart, w: totalW, h: bodyH }); } 
+            else {
+                const w1Tiles = Math.floor(wTiles * 0.4) + 1;
+                w1 = w1Tiles * TILE_SIZE; 
+                const h2Tiles = Math.floor(bodyHTiles * 0.4) + 1;
+                h2 = h2Tiles * TILE_SIZE; 
+                if (LShapeType === 'LEFT') { segments.push({ x: x, y: yBodyStart, w: w1, h: bodyH }); } 
+                else { segments.push({ x: x + totalW - w1, y: yBodyStart, w: w1, h: bodyH }); }
+                segments.push({ x: x, y: yBodyStart + bodyH - h2, w: totalW, h: h2 });
+            }
+            
+            const roofH = TILE_SIZE * ROOF_HEIGHT_TILES;
+            const smallRoofVariation = 1; 
+            for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                let roofY = segment.y - roofH;
+                let platformH = roofH;
+                if (LShapeType !== 'NONE' && i === 0) { roofY -= smallRoofVariation; platformH += smallRoofVariation; }
+                roofPlatforms.push({ x: segment.x, y: roofY, w: segment.w, h: platformH });
+            }
+            
+            const doorW = TILE_SIZE;
+            const doorH = TILE_SIZE * 2;
+            const minDoorXTileIndex = 1;
+            const maxDoorXTileIndex = wTiles - 2; 
+            
+            if (maxDoorXTileIndex >= minDoorXTileIndex) {
+                 const range = maxDoorXTileIndex - minDoorXTileIndex + 1;
+                 const doorXTileIndex = minDoorXTileIndex + Math.floor(Math.random() * range);
+                 const doorX = x + TILE_SIZE * doorXTileIndex;
+                 const doorY = world.ground.y - doorH; 
+                 door1 = { x: doorX, y: doorY, w: doorW, h: doorH };
+                 doors.push(door1);
+            }
+            
+            const windows = [];
+            const bodyAreaTiles = wTiles * bodyHTiles;
+            const sizeBasedMaxWindows = Math.max(1, Math.floor(bodyAreaTiles / 16)); 
+            const finalMaxWindows = Math.min(sizeBasedMaxWindows, MAX_WINDOW_COUNT);
+            const numWindows = Math.floor(Math.random() * finalMaxWindows) + 1;
+            const winW = TILE_SIZE;
+            const winH = TILE_SIZE;
+            const minYIndex = 1;
+            const maxYIndex = bodyHTiles - 3; 
+            if (maxYIndex >= minYIndex) {
+                for (let i = 0; i < numWindows; i++) {
+                    const minXIndex = 1;
+                    const maxXIndex = wTiles - 2;
+                    if (maxXIndex < minXIndex) continue; 
+                    for (let attempt = 0; attempt < 10; attempt++) {
+                        const tileXIndex = minXIndex + Math.floor(Math.random() * (maxXIndex - minXIndex + 1));
+                        const winX = x + tileXIndex * TILE_SIZE;
+                        const tileYIndex = minYIndex + Math.floor(Math.random() * (maxYIndex - minYIndex + 1));
+                        const winY = yBodyStart + tileYIndex * TILE_SIZE; 
+                        const newWin = { x: winX, y: winY, w: winW, h: winH };
+                        let isInsideSegment = false;
+                        for (const segment of segments) {
+                            if (checkCollision(newWin, segment)) { isInsideSegment = true; break; }
+                        }
+                        if (!isInsideSegment) continue;
+                        let overlapsDoor = false;
+                        for (const existingDoor of doors) {
+                            if (checkCollision(newWin, existingDoor)) { overlapsDoor = true; break; }
+                        }
+                        if (overlapsDoor) continue;
+                        let overlapsExisting = false;
+                        for (const existingWin of windows) {
+                            if (checkCollision(newWin, existingWin)) { overlapsExisting = true; break; }
+                        }
+                        if (!overlapsExisting) { 
+                            windows.push({
+                                x: winX, y: winY, w: winW, h: winH,
+                                // isLit is correctly set here based on the now-configured world.currentTimeOfDay
+                                isLit: world.currentTimeOfDay === 'night' ? Math.random() < 0.7 : false 
+                            }); 
+                            break; 
+                        }
+                    }
+                }
+            }
+            
+            // Populate the 'details' array
+            if (LShapeType === 'NONE' && wTiles >= MIN_WIDTH_FOR_DETAIL) {
+                const detailH = TILE_SIZE;
+                const middleYIndex = Math.floor(bodyHTiles / 2);
+                let detailY = yBodyStart + middleYIndex * TILE_SIZE;
+                if (door1) {
+                    if (detailY < door1.y + door1.h && detailY + detailH > door1.y) {
+                        detailY = yBodyStart + (middleYIndex - 1) * TILE_SIZE; 
+                    }
+                }
+                details.push({ x: x, y: detailY, w: totalW, h: detailH });
+            }
+
+            const isShop = Math.random() < SHOP_CHANCE;
+            let shopSign = null;
+            if (isShop) {
+                const signW = TILE_SIZE * 4;
+                const signH = TILE_SIZE;
+                const centerDoorX = door1 ? door1.x + door1.w / 2 : x + totalW / 2;
+                const signX = centerDoorX - signW / 2;
+                const signY = yBodyStart - signH; 
+                const finalSignX = Math.floor(signX / TILE_SIZE) * TILE_SIZE;
+                const finalSignY = Math.floor(signY / TILE_SIZE) * TILE_SIZE;
+                const randomName = SHOP_NAMES[Math.floor(Math.random() * SHOP_NAMES.length)];
+                shopSign = { x: finalSignX, y: finalSignY, w: signW, h: signH, text: randomName };
+            }
+
+            return { 
+                x, y, w: totalW, h: totalH, color, roofColor, 
+                segments, roofPlatforms, windows, doors, details,
+                isShop, shopSign 
+            };
+        }
+        
+        function generateTownHall(startX) { 
+            const W = TOWN_HALL_W_TILES * TILE_SIZE; 
+            const H = TOWN_HALL_H_TILES * TILE_SIZE; 
+            const x = Math.floor(startX / TILE_SIZE) * TILE_SIZE; 
+            const color = getRandomWarmColor(); 
+            const roofColor = getDarkerColor(color);
+            const roofH = TILE_SIZE * ROOF_HEIGHT_TILES;
+            let segments = [];
+            let roofPlatforms = [];
+            const wingHTiles = 8; 
+            const wingH = wingHTiles * TILE_SIZE;
+            segments.push({ x: x, y: world.ground.y - wingH, w: W, h: wingH });
+            roofPlatforms.push({ x: x, y: world.ground.y - wingH - roofH, w: W, h: roofH });
+            const towerWTiles = 6; 
+            const towerH = H; 
+            const towerW = towerWTiles * TILE_SIZE;
+            const towerX = x + (W / 2) - (towerW / 2);
+            segments.push({ x: towerX, y: world.ground.y - towerH, w: towerW, h: towerH - wingH });
+            const towerRoofY = world.ground.y - towerH;
+            roofPlatforms.push({ 
+                x: towerX, y: towerRoofY - roofH, 
+                w: towerW, h: roofH,
+                isTowerBase: true 
+            });
+            const doorW = TILE_SIZE * 2;
+            const doorH = TILE_SIZE * 3;
+            const doorX = towerX + TILE_SIZE * 2;
+            const doorY = world.ground.y - doorH;
+            const signW = TILE_SIZE * 6; 
+            const signH = TILE_SIZE;
+            const signX = x + (W / 2) - (signW / 2); 
+            const signY = world.ground.y - wingH - TILE_SIZE * 2; 
+
+            return {
+                x, y: world.ground.y - H, w: W, h: H, 
+                color: color, roofColor,
+                segments, roofPlatforms,
+                doors: [{ x: doorX, y: doorY, w: doorW, h: doorH }],
+                windows: [], details: [],
+                isShop: true,
+                shopSign: { x: signX, y: signY, w: signW, h: signH, text: "TOWN HALL" },
+                isTownHall: true 
+            };
+        }
+
+        function generateForestMain(startX) {
+            world.trees = [];
+            let currentX = startX + TILE_SIZE * 5; 
+            const forestEnd = WORLD_WIDTH - TILE_SIZE * 5;
+
+            while (currentX < forestEnd) {
+                const treeH = Math.floor(Math.random() * (TREE_MAX_H - TREE_MIN_H)) + TREE_MIN_H;
+                const treeY = world.ground.y - treeH;
+                
+                world.trees.push({
+                    x: currentX,
+                    y: treeY,
+                    w: TREE_W,
+                    h: treeH,
+                    trunkColor: DEFAULT_TRUNK, 
+                    foliageColor: DEFAULT_FOLIAGE 
+                });
+
+                const gap = TREE_W + Math.floor(Math.random() * 3 + 1) * TREE_W;
+                currentX += gap;
+            }
+        }
+        
+        function generateCampsite(x) { 
+            const campsite = {
+                x: x,
+                tent: {
+                    x: x - TILE_SIZE * 5,
+                    y: world.ground.y - TILE_SIZE * 5, 
+                    w: TILE_SIZE * 6,
+                    h: TILE_SIZE * 5,
+                },
+                fire: {
+                    x: x + TILE_SIZE * 2,
+                    y: world.ground.y - CAMP_FIRE_H,
+                    w: TILE_SIZE * 2,
+                    h: CAMP_FIRE_H,
+                }
+            };
+            return campsite;
+        }
+        
+        function generatePeople() { 
+            world.people = []; 
+
+            const personHeight = PLAYER_SIZE * PLAYER_HEIGHT_TILES;
+            const townEnd = world.forestStartX; 
+            const wanderAreaMinX = TILE_SIZE * 5;
+            const wanderAreaMaxX = townEnd; 
+            
+            // --- Determine seasonal properties for NPCs ---
+            let numTownNpcs = NUM_TOWN_NPCS;
+            let hasUmbrella = false;
+            let isWinter = world.currentSeason === 'winter';
+            let isNight = world.currentTimeOfDay === 'night';
+
+            if (world.currentSeason === 'rain') {
+                numTownNpcs = Math.floor(NUM_TOWN_NPCS / 2); 
+                hasUmbrella = true; 
+            }
+            if (isNight) {
+                numTownNpcs = Math.floor(numTownNpcs / 2); 
+            }
+            // ---------------------------------------------------
+
+            const createPersonData = (x, walkMin, walkMax, isCamper, walkDirection, sittingOnBench = null) => {
+                const personHasScarf = isWinter && Math.random() < 0.5;
+                const personHasHat = Math.random() < 0.25; 
+                
+                return {
+                    x: x, y: world.ground.y - personHeight,
+                    w: PLAYER_SIZE, h: personHeight,
+                    vx: 0, vy: 0, onGround: false,
+                    color: getRandomColor(),
+                    walkDirection: walkDirection, 
+                    isTalking: isCamper, talkTimer: isCamper ? 99999 : 0, 
+                    id: nextPersonId++,
+                    isCamper: isCamper, walkMin: walkMin, walkMax: walkMax,
+                    hasUmbrella: hasUmbrella && !isCamper, 
+                    hasScarf: personHasScarf, 
+                    scarfColor: personHasScarf ? getRandomFixedScarfColor() : null, 
+                    hasHat: personHasHat,
+                    hatColor: personHasHat ? getRandomColor() : null,
+                    isSitting: sittingOnBench !== null,
+                    sittingOnBench: sittingOnBench,
+                    // NEW properties for NPC jitter fix
+                    wallHit: false,
+                    wallHitCooldown: 0 
+                };
+            };
+
+
+            // 1. Town Wandering NPCs
+            for (let i = 0; i < numTownNpcs; i++) {
+                const x = wanderAreaMinX + Math.random() * (wanderAreaMaxX - wanderAreaMinX);
+                const wanderingRange = TILE_SIZE * 50; 
+                const walkMin = Math.max(wanderAreaMinX, x - wanderingRange);
+                const walkMax = Math.min(wanderAreaMaxX, x + wanderingRange);
+                const walkDirection = Math.random() < 0.5 ? 1 : -1;
+
+                world.people.push(createPersonData(x, walkMin, walkMax, false, walkDirection));
+            }
+
+            // 2. Plaza Visitors 
+            if (world.plaza) {
+                const plazaMinX = world.plaza.x + TILE_SIZE; 
+                const plazaMaxX = world.plaza.x + world.plaza.w - TILE_SIZE - PLAYER_SIZE; 
+                
+                if (plazaMaxX > plazaMinX) { 
+                    for (let i = 0; i < NUM_PLAZA_VISITORS; i++) {
+                        const x = plazaMinX + Math.random() * (plazaMaxX - plazaMinX);
+                        const walkDirection = Math.random() < 0.5 ? 1 : -1;
+                        world.people.push(createPersonData(x, plazaMinX, plazaMaxX, false, walkDirection));
+                    }
+                }
+            }
+            
+            // 3. Campers 
+            if (world.campsite) {
+                const camperHeight = PLAYER_SIZE * PLAYER_HEIGHT_TILES;
+                for (let i = 0; i < 2; i++) {
+                    const camperX = world.campsite.fire.x + (i * TILE_SIZE * 3) - TILE_SIZE; 
+                    world.people.push(createPersonData(camperX, camperX, camperX, true, 0));
+                    world.people[world.people.length - 1].onGround = true; 
+                }
+            }
+
+            // 4. Bench sitters (Re-enabled logic for 0-2 sitters)
+            for (const prop of world.props) {
+                if (prop.type === 'bench') {
+                    // 0, 1, or 2 sitters
+                    const numSitters = Math.floor(Math.random() * 3); 
+                    const seatStart = prop.x + TILE_SIZE / 4; 
+                    const spaceBetween = TILE_SIZE * 1.5; 
+                    const personHeight = PLAYER_SIZE * PLAYER_HEIGHT_TILES;
+                    
+                    for (let i = 0; i < numSitters; i++) {
+                        let sitX;
+                        if (numSitters === 1) {
+                            // If only one, center them in the middle of the bench
+                            sitX = prop.x + prop.w / 2 - PLAYER_SIZE / 2;
+                        } else { 
+                            // Place two people spaced out
+                            sitX = seatStart + (i * spaceBetween);
+                        }
+
+                        // Adjust y position to sit *on* the bench seat (which is at prop.y + TILE_SIZE / 2)
+                        const sitY = prop.y - (personHeight - (TILE_SIZE / 2)); 
+                        
+                        const newSitter = createPersonData(sitX, sitX, sitX, false, 0, prop);
+                        newSitter.y = sitY; 
+                        newSitter.onGround = true; 
+                        world.people.push(newSitter);
+                    }
+                }
+            }
+        }
+
+        function generateTown() {
+            world.houses = [];
+            world.bases = []; 
+            world.plaza = null; 
+            world.props = []; 
+            world.trees = []; 
+            
+            let currentX = TILE_SIZE * 5;
+            let lastHouseX = 0;
+            const maxTownX = WORLD_WIDTH * 0.9;
+            let townHallPlaced = false;
+
+            for (let i = 0; i < NUM_HOUSES; i++) {
+                if (currentX >= maxTownX - HOUSE_MAX_WIDTH_TILES * TILE_SIZE) break; 
+                
+                if (i === 8 && !townHallPlaced) {
+                    const townHall = generateTownHall(currentX);
+                    world.houses.push(townHall);
+                    currentX = townHall.x + townHall.w + TILE_SIZE * 5; 
+                    townHallPlaced = true;
+                    lastHouseX = currentX;
+                    continue; 
+                }
+                
+                if (!world.plaza && Math.random() < PLAZA_CHANCE && currentX > TILE_SIZE * 50) {
+                    const wTiles = Math.floor(Math.random() * (PLAZA_MAX_WIDTH_TILES - PLAZA_MIN_WIDTH_TILES) + PLAZA_MIN_WIDTH_TILES);
+                    const plazaW = wTiles * TILE_SIZE;
+                    world.plaza = { x: currentX, w: plazaW };
+                    currentX += plazaW; 
+                    lastHouseX = currentX;
+                    continue; 
+                }
+
+                const newHouse = generateHouse(currentX);
+                world.houses.push(newHouse);
+                const nextHouseStart = newHouse.x + newHouse.w;
+                lastHouseX = nextHouseStart;
+
+                const gap = TILE_SIZE * Math.floor(Math.random() * 5) + TILE_SIZE * 3; 
+
+                // Generate props in wider gaps
+                if (gap > TILE_SIZE * 4) { 
+                    
+                    if (Math.random() < PARK_CHANCE) {
+                        // PARK GENERATION: Only adds a tree
+                        const treeX = nextHouseStart + (gap / 2) - TREE_W; 
+                        const treeH = Math.floor(Math.random() * (TREE_MAX_H - TREE_MIN_H)) + TREE_MIN_H;
+                        const treeY = world.ground.y - treeH;
+
+                        world.trees.push({
+                            x: treeX,
+                            y: treeY,
+                            w: TREE_W,
+                            h: treeH,
+                            trunkColor: DEFAULT_TRUNK, 
+                            foliageColor: DEFAULT_FOLIAGE 
+                        });
+                        
+                    } else if (Math.random() < 0.5) { 
+                        // GAP PROP GENERATION: Choose between Bench or Trash Can
+                        
+                        const randomPropType = Math.random() < 0.5 ? 'bench' : 'trashcan'; 
+
+                        if (randomPropType === 'trashcan') {
+                            const propW = TILE_SIZE * 1; 
+                            const propX = nextHouseStart + (gap / 2) - (propW / 2); 
+                            world.props.push({ 
+                                type: 'trashcan', 
+                                x: propX, 
+                                y: world.ground.y - TILE_SIZE, 
+                                w: propW, 
+                                h: TILE_SIZE, 
+                                color: COLOR_TRASHCAN 
+                            });
+                        } else { // 'bench'
+                            const benchW = TILE_SIZE * BENCH_W_TILES; 
+                            const benchH = TILE_SIZE * 1; 
+                            const benchX = nextHouseStart + (gap / 2) - (benchW / 2); 
+                            // Place the y position relative to the seat height
+                            const benchY = world.ground.y - TILE_SIZE / 2; 
+                            
+                            world.props.push({ 
+                                type: 'bench', 
+                                x: benchX, 
+                                y: benchY, 
+                                w: benchW, 
+                                h: benchH, 
+                                color: COLOR_BENCH,
+                                // isBenchSeat flag is crucial for collision
+                                isBenchSeat: true 
+                            });
+                        }
+                    }
+                }
+
+                if (gap > TILE_SIZE * 3 && gap <= TILE_SIZE * 6 && Math.random() < 0.3) {
+                    const baseH = GROUND_HEIGHT; 
+                    const baseW = gap;
+                    const baseX = nextHouseStart;
+                    const baseY = world.ground.y;
+                    
+                    world.bases.push({
+                        x: baseX,
+                        y: baseY,
+                        w: baseW,
+                        h: baseH,
+                        color: COLOR_CONCRETE
+                    });
+                    
+                    currentX = baseX + baseW; 
+                } else {
+                    currentX = nextHouseStart + gap;
+                }
+            }
+            
+            // This generateForest function creates the main, larger forest area
+            world.forestStartX = lastHouseX + TILE_SIZE * 10;
+            generateForestMain(world.forestStartX);
+            
+            world.campsite = null; 
+            if (Math.random() < CAMPSITE_CHANCE) {
+                const forestLength = WORLD_WIDTH - world.forestStartX;
+                const campsiteX = world.forestStartX + forestLength * 0.4 + Math.random() * forestLength * 0.2;
+                world.campsite = generateCampsite(Math.floor(campsiteX / TILE_SIZE) * TILE_SIZE);
+            }
+
+        }
+
+        // Renamed to avoid conflict with the in-town tree generation
+        function generateForest(startX) {
+            world.trees = [];
+            let currentX = startX + TILE_SIZE * 5; 
+            const forestEnd = WORLD_WIDTH - TILE_SIZE * 5;
+
+            while (currentX < forestEnd) {
+                const treeH = Math.floor(Math.random() * (TREE_MAX_H - TREE_MIN_H)) + TREE_MIN_H;
+                const treeY = world.ground.y - treeH;
+                
+                world.trees.push({
+                    x: currentX,
+                    y: treeY,
+                    w: TREE_W,
+                    h: treeH,
+                    trunkColor: DEFAULT_TRUNK, 
+                    foliageColor: DEFAULT_FOLIAGE 
+                });
+
+                const gap = TREE_W + Math.floor(Math.random() * 3 + 1) * TREE_W;
+                currentX += gap;
+            }
+        }
+
+        // --- SEASON AND TIME OF DAY SETUP FUNCTION ---
+        function setupWorldState(season, timeOfDay) {
+            world.currentSeason = season;
+            world.currentTimeOfDay = timeOfDay;
+            rainParticles = [];
+            snowParticles = [];
+
+            // Reset tree colors to default before applying seasonal changes
+            for (const tree of world.trees) {
+                tree.foliageColor = DEFAULT_FOLIAGE; 
+                tree.trunkColor = DEFAULT_TRUNK;
+            }
+
+            // Apply seasonal base colors
+            if (season === 'fall') {
+                world.skyColor = '#6d95b5'; 
+                world.groundColor = '#3a8d3a'; 
+                for (const tree of world.trees) {
+                    tree.foliageColor = FALL_FOLIAGE_COLORS[Math.floor(Math.random() * FALL_FOLIAGE_COLORS.length)];
+                    tree.trunkColor = '#804000'; 
+                }
+            } else if (season === 'rain') {
+                world.skyColor = '#4f7f9f'; 
+                world.groundColor = DEFAULT_GROUND;
+                for (let i = 0; i < 150; i++) { 
+                    rainParticles.push({x: Math.random() * CANVAS_WIDTH, y: Math.random() * CANVAS_HEIGHT, vx: -2, vy: 10,});
+                }
+            } else if (season === 'winter') {
+                world.skyColor = '#c8e0f0'; 
+                world.groundColor = '#ddeeff'; 
+                for (let i = 0; i < 120; i++) { 
+                    snowParticles.push({x: Math.random() * WORLD_WIDTH, y: Math.random() * CANVAS_HEIGHT, vx: 1.5, vy: 2.5 + Math.random() * 1.5, r: 1 + Math.random() * 1.5,});
+                }
+                for (const tree of world.trees) {
+                    tree.foliageColor = '#b0c4de'; 
+                }
+            } else { // Sunny
+                world.skyColor = DEFAULT_SKY;
+                world.groundColor = DEFAULT_GROUND;
+            }
+
+            // Apply time of day adjustments
+            if (timeOfDay === 'night') {
+                world.skyColor = NIGHT_SKY;
+                // Darken ground color slightly for night
+                world.groundColor = getDarkerColor(world.groundColor, 0.6); 
+                world.ambientLightFactor = 0.6; 
+            } else {
+                world.ambientLightFactor = 1.0; 
+            }
+            
+            console.log(`Current State: ${world.currentSeason.toUpperCase()} - ${world.currentTimeOfDay.toUpperCase()}`);
+        }
+
+        // --- GAME LOGIC ---
+
+        function init() {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+
+            document.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+            });
+            document.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            // Set initial colors to default before game loop starts
+            world.skyColor = DEFAULT_SKY;
+            world.groundColor = DEFAULT_GROUND;
+
+            resetGame();
+            gameLoop();
+        }
+
+        function resetGame() {
+            const playerHeight = PLAYER_SIZE * PLAYER_HEIGHT_TILES; 
+            nextPersonId = 0; 
+            
+            player = {
+                x: TILE_SIZE * 2,
+                y: world.ground.y - playerHeight - TILE_SIZE, 
+                w: PLAYER_SIZE,
+                h: playerHeight,
+                vx: 0,
+                vy: 0,
+                onGround: false,
+                color: COLOR_PLAYER,
+            };
+
+            // Pick a random season and time of day
+            const randomSeason = SEASONS[Math.floor(Math.random() * SEASONS.length)];
+            const randomTimeOfDay = TIMES_OF_DAY[Math.floor(Math.random() * TIMES_OF_DAY.length)];
+
+            setupWorldState(randomSeason, randomTimeOfDay); 
+            generateTown(); 
+            generatePeople(); 
+        }
+
+        function updatePlayer() { 
+            let targetVx = 0;
+            if (keys['KeyA'] || keys['ArrowLeft']) { targetVx = -PLAYER_SPEED; } 
+            else if (keys['KeyD'] || keys['ArrowRight']) { targetVx = PLAYER_SPEED; }
+            
+            // Apply air resistance/slowdown
+            player.vx += (targetVx - player.vx) * 0.2;
+            
+            // Apply jump impulse
+            if ((keys['Space'] || keys['KeyW'] || keys['ArrowUp']) && player.onGround) {
+                player.vy = JUMP_POWER; 
+            }
+            player.onGround = false; // Reset for collision check
+        }
+
+        /** Handles collisions for the Player and all People. */
+        function handleCollisions(entity) { 
+            const isNPC = entity.walkDirection !== undefined;
+            let wallHit = false; 
+            
+            // --- 1. Setup Platforms ---
+            const platforms = [world.ground];
+            for (const house of world.houses) {
+                platforms.push(...house.segments);
+                platforms.push(...house.roofPlatforms); 
+            }
+            platforms.push(...world.bases); 
+
+            // NPC's that are NOT sitting or campers will ignore benches for collision
+            const collisionPlatforms = isNPC 
+                ? platforms.filter(p => !p.isBenchSeat) 
+                : platforms; 
+
+            // Add props that are marked as solid platforms (i.e., benches)
+            for (const prop of world.props) {
+                if (prop.isBenchSeat) {
+                    collisionPlatforms.push({
+                        x: prop.x, 
+                        y: prop.y, 
+                        w: prop.w, 
+                        h: TILE_SIZE / 2, // Only the seat itself is a platform
+                        isBenchSeat: true
+                    });
+                }
+            }
+
+            let newOnGround = false;
+            
+            // --- 2. Apply Gravity/Vertical Force ---
+            if (!entity.isSitting) { 
+                entity.vy += GRAVITY; 
+            }
+            
+            // --- 3. Vertical Movement and Collision (Fixing Tunneling) ---
+            let newY = entity.y + entity.vy;
+            const entityNextY = { ...entity, y: newY };
+            
+            for (const platform of collisionPlatforms) {
+                // Check collision at the new potential Y position
+                if (checkCollision(entityNextY, platform)) {
+                    // Collision from top (Landing)
+                    if (entity.y + entity.h <= platform.y && entity.vy > 0) {
+                        newY = platform.y - entity.h; // Correct position to exactly on top
+                        entity.vy = 0;
+                        newOnGround = true;
+                        break; 
+                    } 
+                    // Collision from bottom (Hitting head)
+                    else if (entity.y >= platform.y + platform.h && entity.vy < 0) {
+                         newY = platform.y + platform.h;
+                         entity.vy = 0;
+                         break;
+                    }
+                }
+            }
+            entity.y = newY; // Commit Y movement
+            entity.onGround = newOnGround;
+
+            // --- 4. Horizontal Movement and Collision (Wall Check) ---
+            let newX = entity.x + entity.vx;
+            const entityNextX = { ...entity, x: newX }; 
+            
+            for (const platform of collisionPlatforms) {
+                if (checkCollision(entityNextX, platform)) {
+                    // Check if it was a side collision (by checking Y overlap at the new X position)
+                    if (entity.y < platform.y + platform.h && entity.y + entity.h > platform.y) {
+                        
+                        // Collision from left
+                        if (entity.x + entity.w <= platform.x) {
+                            newX = platform.x - entity.w;
+                            entity.vx = 0;
+                            wallHit = true; 
+                        } 
+                        // Collision from right
+                        else if (entity.x >= platform.x + platform.w) {
+                            newX = platform.x + platform.w;
+                            entity.vx = 0;
+                            wallHit = true; 
+                        }
+                    }
+                }
+            }
+            entity.x = newX; // Commit X movement
+            
+            // Keep entity within world bounds horizontally
+            entity.x = Math.max(0, Math.min(entity.x, WORLD_WIDTH - entity.w));
+            entity.y = Math.min(entity.y, CANVAS_HEIGHT - entity.h); // Prevent falling through the bottom of the world
+
+            // --- 5. NPC Wall Logic ---
+            if (entity.wallHit !== undefined) {
+                 entity.wallHit = wallHit; 
+            }
+        }
+
+        function updatePeople() { 
+            for (const person of world.people) {
+                // Reset wall hit flag and apply physics and collisions
+                person.wallHit = false;
+                handleCollisions(person);
+
+                if (person.isSitting || person.isCamper) {
+                    person.vx = 0;
+                    person.vy = 0;
+                    person.onGround = true; 
+                    continue; 
+                }
+
+                // --- NPC AI Logic (Including Jitter Fix) ---
+                
+                // Manage Wall Hit Cooldown
+                if (person.wallHitCooldown > 0) {
+                    person.wallHitCooldown--;
+                } 
+                
+                // If a wall is hit AND the cooldown is expired, reverse direction and reset cooldown
+                else if (person.wallHit && person.walkDirection !== 0) {
+                    person.walkDirection *= -1;
+                    person.wallHitCooldown = 15; // Set cooldown (approx 0.25 seconds)
+                }
+                
+                // Standard walking logic
+                if (person.walkDirection !== 0) {
+                    // Boundary check
+                    if (person.x < person.walkMin && person.walkDirection === -1) { person.walkDirection = 1; } 
+                    else if (person.x + person.w > person.walkMax && person.walkDirection === 1) { person.walkDirection = -1; }
+
+                    if (person.isTalking) {
+                        person.vx = 0;
+                        person.talkTimer--;
+                        if (person.talkTimer <= 0) { 
+                            person.isTalking = false; 
+                            person.walkDirection = person.walkDirection === 0 ? (Math.random() < 0.5 ? 1 : -1) : person.walkDirection; 
+                        }
+                    } else {
+                        person.vx = person.walkDirection * PERSON_SPEED;
+                        
+                        // Interaction Check (Only if not in cooldown)
+                        if (person.wallHitCooldown === 0) {
+                             for (const other of world.people) {
+                                if (person.id !== other.id && !other.isTalking && other.walkDirection !== 0) {
+                                    const distance = Math.abs(person.x - other.x);
+                                    if (distance < PERSON_TALK_RANGE && person.onGround) {
+                                        const movingTowards = (person.walkDirection === 1 && person.x < other.x) || (person.walkDirection === -1 && person.x > other.x);
+                                        if (movingTowards) {
+                                            person.isTalking = true;
+                                            person.talkTimer = PERSON_TALK_DURATION;
+                                            person.vx = 0; 
+                                            break; 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (person.onGround && !person.isTalking && person.wallHitCooldown === 0 && Math.random() < 0.005) { 
+                        person.walkDirection *= -1; 
+                    }
+                }
+            }
+        }
+        
+        // --- PARTICLE UPDATE ---
+        function updateParticles() {
+            if (world.currentSeason === 'rain') {
+                for (const p of rainParticles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    // Loop rain particle when out of view (using canvas dimensions)
+                    if (p.y > CANVAS_HEIGHT) {
+                        p.y = -5;
+                        p.x = Math.random() * CANVAS_WIDTH;
+                    }
+                    if (p.x < 0) {
+                        p.x = CANVAS_WIDTH;
+                    }
+                }
+            } else if (world.currentSeason === 'winter') {
+                 for (const p of snowParticles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    // Loop snow particle when out of view (using world width for seamless scrolling)
+                    if (p.y > CANVAS_HEIGHT) {
+                        p.y = -5;
+                        // Respawn X relative to the camera for continuous snowfall
+                        p.x = cameraX + Math.random() * CANVAS_WIDTH;
+                    }
+                    if (p.x > WORLD_WIDTH) {
+                        p.x = 0; // Wrap around the world horizontally
+                    }
+                }
+            }
+        }
+
+
+        function updateCamera() {
+            const targetCameraX = player.x - CANVAS_WIDTH / 2;
+            cameraX += (targetCameraX - cameraX) * 0.1;
+            cameraX = Math.max(0, Math.min(cameraX, WORLD_WIDTH - CANVAS_WIDTH));
+        }
+
+        function update() {
+            updatePlayer(); // Get player input/desired velocity
+            handleCollisions(player); // Apply physics and collision for player
+            updatePeople(); // Apply physics and collision for NPCs
+            updateParticles(); 
+            updateCamera();
+        }
+
+        // --- RENDERING ---
+        
+        function drawTree(tree) { 
+            const trunkH = TILE_SIZE * 5;
+            const trunkW = TILE_SIZE; 
+            const trunkX = tree.x + (tree.w / 2) - (trunkW / 2); 
+            const trunkY = world.ground.y - trunkH;
+            
+            ctx.fillStyle = getDarkerColor(tree.trunkColor, world.ambientLightFactor);
+            ctx.fillRect(trunkX - cameraX, trunkY, trunkW, trunkH);
+
+            const foliageH = tree.h - TILE_SIZE; 
+            const foliageW = TREE_W * 2; 
+            const foliageX = tree.x - TREE_W / 2; 
+
+            ctx.fillStyle = getDarkerColor(tree.foliageColor, world.ambientLightFactor);
+            ctx.fillRect(foliageX - cameraX, tree.y, foliageW, foliageH);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillRect(foliageX - cameraX, tree.y, foliageW, TILE_SIZE * 2);
+
+        }
+
+        function drawCampsite(campsite) {
+            const fire = campsite.fire;
+            const tent = campsite.tent;
+            
+            ctx.fillStyle = getDarkerColor(COLOR_TENT, world.ambientLightFactor);
+            ctx.fillRect(tent.x - cameraX, tent.y + TILE_SIZE, tent.w, tent.h - TILE_SIZE);
+            ctx.beginPath();
+            ctx.moveTo(tent.x - cameraX, tent.y + TILE_SIZE); 
+            ctx.lineTo(tent.x - cameraX + tent.w / 2, tent.y); 
+            ctx.lineTo(tent.x - cameraX + tent.w, tent.y + TILE_SIZE); 
+            ctx.closePath();
+            ctx.fill();
+            
+            const LOG_W = TILE_SIZE/2;
+            ctx.fillStyle = getDarkerColor(DEFAULT_TRUNK, world.ambientLightFactor); 
+            ctx.fillRect(fire.x - cameraX, fire.y + fire.h - 5, fire.w, 5); 
+            ctx.fillRect(fire.x - cameraX + LOG_W, fire.y + fire.h - 10, fire.w - TILE_SIZE, 5);
+            
+            // Fire glows at night
+            if (world.currentTimeOfDay === 'night') {
+                ctx.fillStyle = COLOR_FIRE;
+            } else {
+                ctx.fillStyle = getDarkerColor(COLOR_FIRE, world.ambientLightFactor);
+            }
+            ctx.fillRect(fire.x - cameraX + TILE_SIZE/2, fire.y - TILE_SIZE/2, TILE_SIZE, TILE_SIZE);
+            
+            if (world.currentTimeOfDay === 'night') {
+                ctx.fillStyle = '#ffcc00'; 
+            } else {
+                ctx.fillStyle = getDarkerColor('#ffcc00', world.ambientLightFactor); 
+            }
+            ctx.fillRect(fire.x - cameraX + TILE_SIZE/2 + TILE_SIZE/4, fire.y - TILE_SIZE/4, TILE_SIZE/2, TILE_SIZE/2);
+            
+            ctx.fillStyle = COLOR_SMOKE;
+            if (Math.floor(Date.now() / 150) % 4 < 2) {
+                 ctx.fillRect(fire.x - cameraX + fire.w/2 - 2, fire.y - TILE_SIZE * 2, 4, 4);
+            }
+        }
+        
+        function drawPlaza(plaza) {
+            const pavedH = GROUND_HEIGHT; 
+            const pavedY = world.ground.y;
+            ctx.fillStyle = getDarkerColor(COLOR_PAVEMENT, world.ambientLightFactor);
+            ctx.fillRect(plaza.x - cameraX, pavedY, plaza.w, pavedH);
+            
+            ctx.fillStyle = getDarkerColor(COLOR_PAVEMENT, world.ambientLightFactor * 0.8);
+            for(let i = 0; i < plaza.w; i += TILE_SIZE * 2) {
+                for(let j = 0; j < pavedH; j += TILE_SIZE) {
+                    ctx.fillRect(plaza.x - cameraX + i, pavedY + j, 2, 2); 
+                    ctx.fillRect(plaza.x - cameraX + i + TILE_SIZE, pavedY + j + TILE_SIZE/2, 2, 2); 
+                }
+            }
+            
+            const center = plaza.x + plaza.w / 2;
+            const fountainW = TILE_SIZE * 5;
+            const fountainH = TILE_SIZE * 2;
+            const fountainX = center - fountainW / 2;
+            const fountainY = world.ground.y - fountainH;
+            
+            ctx.fillStyle = getDarkerColor(COLOR_FOUNTAIN_STONE, world.ambientLightFactor);
+            ctx.fillRect(fountainX - cameraX, fountainY, fountainW, fountainH);
+            
+            ctx.fillStyle = getDarkerColor(COLOR_FOUNTAIN_STONE, world.ambientLightFactor * 0.8);
+            ctx.fillRect(fountainX - cameraX + TILE_SIZE/2, fountainY + TILE_SIZE/2, fountainW - TILE_SIZE, fountainH - TILE_SIZE/2);
+
+            ctx.fillStyle = getDarkerColor(COLOR_FOUNTAIN_WATER, world.ambientLightFactor);
+            ctx.fillRect(fountainX - cameraX + TILE_SIZE, fountainY + TILE_SIZE, fountainW - TILE_SIZE * 2, TILE_SIZE/2);
+            
+            ctx.fillStyle = getDarkerColor(COLOR_FOUNTAIN_WATER, world.ambientLightFactor * 1.2); 
+            if (Math.floor(Date.now() / 100) % 2 === 0) {
+                ctx.fillRect(center - cameraX - 2, fountainY - TILE_SIZE, 4, 4);
+                ctx.fillRect(center - cameraX - 6, fountainY - TILE_SIZE/2, 2, 2);
+            } else {
+                ctx.fillRect(center - cameraX - 2, fountainY - TILE_SIZE - 2, 4, 4);
+                ctx.fillRect(center - cameraX + 4, fountainY - TILE_SIZE/2 - 2, 2, 2);
+            }
+
+            const plantH = TILE_SIZE * 2;
+            const plantW = TILE_SIZE * 3;
+            const stemColor = DEFAULT_TRUNK;
+            
+            const plant1X = plaza.x + TILE_SIZE * 2;
+            const plant1Y = world.ground.y - plantH;
+            ctx.fillStyle = getDarkerColor(stemColor, world.ambientLightFactor);
+            ctx.fillRect(plant1X - cameraX + TILE_SIZE + 5, world.ground.y - TILE_SIZE, 10, TILE_SIZE);
+            ctx.fillStyle = getDarkerColor(world.trees.length > 0 ? world.trees[0].foliageColor : DEFAULT_FOLIAGE, world.ambientLightFactor); 
+            ctx.fillRect(plant1X - cameraX, plant1Y, plantW, plantH);
+            
+            const plant2X = plaza.x + plaza.w - TILE_SIZE * 5;
+            const plant2Y = world.ground.y - plantH;
+            ctx.fillStyle = getDarkerColor(stemColor, world.ambientLightFactor);
+            ctx.fillRect(plant2X - cameraX + TILE_SIZE + 5, world.ground.y - TILE_SIZE, 10, TILE_SIZE);
+            ctx.fillStyle = getDarkerColor(world.trees.length > 0 ? world.trees[0].foliageColor : DEFAULT_FOLIAGE, world.ambientLightFactor);
+            ctx.fillRect(plant2X - cameraX, plant2Y, plantW, plantH);
+        }
+
+        function drawTownHallBell(house) {
+            if (!house.isTownHall) return;
+            const towerRoof = house.roofPlatforms.find(p => p.isTowerBase); 
+
+            if (towerRoof) {
+                const center = towerRoof.x + towerRoof.w / 2;
+                const towerTopY = towerRoof.y;
+                const pillarW = TILE_SIZE / 4; 
+                const pillarH = TILE_SIZE * 2; 
+                const gap = TILE_SIZE * 1.5; 
+                const pillarY = towerTopY - pillarH;
+                
+                ctx.fillStyle = getDarkerColor(house.roofColor, world.ambientLightFactor); 
+                ctx.fillRect(center - gap - pillarW - cameraX, pillarY, pillarW, pillarH);
+                ctx.fillRect(center + gap + pillarW - cameraX, pillarY, pillarW, pillarH);
+
+                const capW = TILE_SIZE * 5; 
+                const capH = TILE_SIZE / 2;
+                const capY = pillarY - capH;
+                
+                ctx.fillStyle = getDarkerColor(house.roofColor, world.ambientLightFactor);
+                ctx.fillRect(center - capW / 2 - cameraX, capY, capW, capH);
+
+                const bellW = TILE_SIZE / 2;
+                const bellH = TILE_SIZE / 2;
+                const bellY = capY + capH + 2; 
+
+                ctx.fillStyle = getDarkerColor('#FFD700', world.ambientLightFactor); 
+                ctx.beginPath();
+                ctx.moveTo(center - bellW / 2 - cameraX, bellY);
+                ctx.lineTo(center + bellW / 2 - cameraX, bellY);
+                ctx.lineTo(center + bellW - cameraX, bellY + bellH);
+                ctx.lineTo(center - bellW - cameraX, bellY + bellH);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = getDarkerColor('#8B4513', world.ambientLightFactor);
+                const clapperOffset = Math.sin(Date.now() / 200) * 4; 
+                ctx.fillRect(center - 1 + clapperOffset - cameraX, bellY + bellH + 1, 2, 2); 
+            }
+        }
+
+        function drawHouse(house) {
+            ctx.fillStyle = getDarkerColor(house.color, world.ambientLightFactor);
+            for (const segment of house.segments) {
+                ctx.fillRect(segment.x - cameraX, segment.y, segment.w, segment.h);
+            }
+            
+            ctx.fillStyle = getDarkerColor(house.roofColor, world.ambientLightFactor);
+            for (const roof of house.roofPlatforms) {
+                ctx.fillRect(roof.x - cameraX, roof.y, roof.w, roof.h);
+            }
+            
+            if (house.details) {
+                ctx.fillStyle = getDarkerColor(house.roofColor, world.ambientLightFactor);
+                for (const detail of house.details) {
+                    ctx.fillRect(detail.x - cameraX, detail.y, detail.w, detail.h);
+                }
+            }
+
+            ctx.fillStyle = getDarkerColor(COLOR_DOOR, world.ambientLightFactor);
+            for (const door of house.doors) {
+                ctx.fillRect(door.x - cameraX, door.y, door.w, door.h);
+            }
+            
+            for (const win of house.windows) {
+                // Determine window color based on time of day and isLit property
+                ctx.fillStyle = win.isLit 
+                    ? COLOR_WINDOW_LIT // Bright yellow, ignoring ambient darkness
+                    : world.currentTimeOfDay === 'night' 
+                        ? COLOR_WINDOW_DARK // Very dark grey if unlit at night
+                        : getDarkerColor(COLOR_WINDOW_DEFAULT, world.ambientLightFactor); // Default color during the day
+
+                ctx.fillRect(win.x - cameraX, win.y, win.w, win.h);
+            }
+
+            if (house.isShop && house.shopSign) {
+                const sign = house.shopSign;
+                ctx.fillStyle = getDarkerColor(house.roofColor, world.ambientLightFactor); 
+                ctx.fillRect(sign.x - cameraX, sign.y, sign.w, sign.h);
+                ctx.fillStyle = getDarkerColor(COLOR_WINDOW_DEFAULT, world.ambientLightFactor); 
+                ctx.font = 'bold 8px "Press Start 2P"'; 
+                ctx.textAlign = 'center';
+                ctx.fillText(sign.text, sign.x - cameraX + sign.w / 2, sign.y + sign.h - 5);
+                ctx.textAlign = 'left'; 
+            }
+        }
+
+        function drawProp(prop) {
+            if (prop.type === 'bench') {
+                ctx.fillStyle = getDarkerColor(prop.color, world.ambientLightFactor);
+
+                // Draw the backrest (top part)
+                const backrestY = prop.y - (TILE_SIZE / 2);
+                ctx.fillRect(prop.x - cameraX, backrestY, prop.w, TILE_SIZE / 2);
+
+                // Draw the seat (platform part for collision is here)
+                const seatY = prop.y;
+                ctx.fillRect(prop.x - cameraX, seatY, prop.w, TILE_SIZE / 2);
+                
+                // Draw the legs
+                const legH = TILE_SIZE / 2;
+                ctx.fillRect(prop.x - cameraX + 2, seatY + 2, 4, legH);
+                ctx.fillRect(prop.x - cameraX + prop.w - 6, seatY + 2, 4, legH);
+                
+            } else if (prop.type === 'trashcan') { 
+                ctx.fillStyle = getDarkerColor(prop.color, world.ambientLightFactor);
+                
+                // Can Body
+                ctx.fillRect(prop.x - cameraX + 2, prop.y + 5, prop.w - 4, prop.h - 5);
+                
+                // Lid
+                const lidH = 5;
+                ctx.fillRect(prop.x - cameraX, prop.y, prop.w, lidH);
+                
+                // Draw a simple stripe/hole
+                ctx.fillStyle = getDarkerColor('#000000', world.ambientLightFactor);
+                ctx.fillRect(prop.x - cameraX + 4, prop.y + 10, prop.w - 8, 2);
+            }
+        }
+
+        function drawPerson(person) {
+            // Body and Head
+            ctx.fillStyle = getDarkerColor(person.color, world.ambientLightFactor);
+            ctx.fillRect(person.x - cameraX, person.y, person.w, person.h);
+            
+            const headH = TILE_SIZE;
+            const headY = person.y;
+            ctx.fillStyle = getDarkerColor(person.color, world.ambientLightFactor * 0.8); 
+            ctx.fillRect(person.x - cameraX, headY, person.w, headH);
+
+            // --- Draw Hat ---
+            if (person.hasHat && person.hatColor) {
+                const hatW = person.w + 4;
+                const hatH = TILE_SIZE / 2;
+                const hatX = person.x - cameraX - 2;
+                const hatY = person.y - hatH; 
+                
+                ctx.fillStyle = getDarkerColor(person.hatColor, world.ambientLightFactor);
+                
+                // Brim/Base (simple band around the head)
+                ctx.fillRect(hatX, hatY + hatH, hatW, 2); 
+                
+                // Top (Simple box on top)
+                const topW = TILE_SIZE;
+                ctx.fillRect(person.x - cameraX + person.w / 2 - topW / 2, hatY, topW, hatH);
+            }
+
+            // --- Draw Scarf ---
+            if (person.hasScarf && person.scarfColor) {
+                const scarfW = person.w + 4;
+                const scarfH = 5;
+                const scarfX = person.x - cameraX - 2;
+                const scarfY = person.y + TILE_SIZE - 2; 
+                
+                ctx.fillStyle = getDarkerColor(person.scarfColor, world.ambientLightFactor); 
+                
+                // Main wrap
+                ctx.fillRect(scarfX, scarfY, scarfW, scarfH);
+                
+                // Scarf tail 1
+                ctx.fillRect(scarfX + scarfW - 5, scarfY + scarfH, 3, TILE_SIZE / 2);
+                // Scarf tail 2
+                ctx.fillRect(scarfX + scarfW - 5, scarfY + scarfH + TILE_SIZE / 2, 3, TILE_SIZE / 2);
+            }
+
+            if (person.isTalking) {
+                const bubbleW = TILE_SIZE * 2;
+                const bubbleH = TILE_SIZE;
+                const bubbleX = person.x - cameraX + person.w / 2 - bubbleW / 2;
+                const bubbleY = person.y - bubbleH - TILE_SIZE / 2; 
+
+                ctx.fillStyle = COLOR_SPEECH_BUBBLE;
+                ctx.fillRect(bubbleX, bubbleY, bubbleW, bubbleH);
+                
+                ctx.fillStyle = COLOR_TEXT;
+                ctx.font = '10px "Press Start 2P"';
+                ctx.fillText('...', bubbleX + TILE_SIZE / 2, bubbleY + TILE_SIZE - 5);
+                
+                ctx.fillRect(person.x - cameraX + person.w / 2 - 2, person.y - TILE_SIZE / 2, 4, 4);
+            }
+
+            // --- Draw umbrella for rainy people ---
+            if (person.hasUmbrella) {
+                const umbrellaX = person.x - cameraX + person.w / 2;
+                const umbrellaY = person.y - TILE_SIZE * 1.5;
+                const umbrellaRadius = TILE_SIZE * 1.2;
+                const umbrellaHandleColor = getDarkerColor('#444444', world.ambientLightFactor);
+                const umbrellaCanopyColor = getDarkerColor('#1a1a2e', world.ambientLightFactor);
+
+                // Canopy
+                ctx.fillStyle = umbrellaCanopyColor;
+                ctx.beginPath();
+                // Arc, starting from left side (PI) to right side (0)
+                ctx.arc(umbrellaX, umbrellaY, umbrellaRadius, Math.PI, 0, false); 
+                ctx.lineTo(umbrellaX + umbrellaRadius, umbrellaY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Handle (stick)
+                ctx.fillStyle = umbrellaHandleColor;
+                ctx.fillRect(umbrellaX - 1, umbrellaY, 2, TILE_SIZE * 2);
+            }
+        }
+        
+        // --- PARTICLE DRAWING ---
+        function drawParticles() {
+            if (world.currentSeason === 'rain') {
+                ctx.strokeStyle = 'rgba(150, 190, 220, 0.8)'; 
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (const p of rainParticles) {
+                    // Draw only if within the current view
+                    const drawX = p.x; 
+                    if (drawX >= -10 && drawX <= CANVAS_WIDTH + 10) {
+                        ctx.moveTo(drawX, p.y);
+                        ctx.lineTo(drawX - p.vx * 2, p.y - p.vy * 0.5); 
+                    }
+                }
+                ctx.stroke();
+            } else if (world.currentSeason === 'winter') {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; 
+                for (const p of snowParticles) {
+                    // Draw snow particle relative to the camera position
+                    const drawX = p.x - cameraX;
+                    if (drawX >= -10 && drawX <= CANVAS_WIDTH + 10) {
+                        ctx.beginPath();
+                        ctx.arc(drawX, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        // --- SNOW LAYER DRAWING (Winter Only) ---
+        function drawSnowLayer() {
+            if (world.currentSeason !== 'winter') return;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            const snowLayerHeight = 3; 
+
+            // 1. Ground snow
+            ctx.fillRect(world.ground.x - cameraX, world.ground.y - snowLayerHeight, world.ground.w, snowLayerHeight);
+            
+            // 2. House roof snow
+            for (const house of world.houses) {
+                for (const roof of house.roofPlatforms) {
+                    ctx.fillRect(roof.x - cameraX, roof.y - snowLayerHeight, roof.w, snowLayerHeight);
+                }
+            }
+
+            // 3. Tree snow (on foliage)
+            for (const tree of world.trees) {
+                // Draw a small cap on top of the foliage bounding box
+                ctx.fillRect(tree.x - (TREE_W / 2) - cameraX, tree.y - snowLayerHeight, TREE_W * 2, snowLayerHeight);
+            }
+
+            // 4. Prop snow (e.g., benches, trash cans)
+            for (const prop of world.props) {
+                if (prop.type === 'bench') {
+                    // Apply snow to the seat and backrest top
+                    ctx.fillRect(prop.x - cameraX, prop.y - (TILE_SIZE / 2) - snowLayerHeight, prop.w, snowLayerHeight);
+                    ctx.fillRect(prop.x - cameraX, prop.y - snowLayerHeight, prop.w, snowLayerHeight);
+                } else if (prop.type === 'trashcan') {
+                    // Apply snow to the lid
+                    ctx.fillRect(prop.x - cameraX, prop.y - snowLayerHeight, prop.w, snowLayerHeight);
+                }
+            }
+        }
+
+
+        function draw() {
+            // 1. Clear the canvas (Using dynamic sky color)
+            ctx.fillStyle = world.skyColor; 
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // 2. Draw Trees (before ground/houses)
+            for (const tree of world.trees) {
+                drawTree(tree);
+            }
+
+            // 3. Draw Ground (Using dynamic ground color)
+            ctx.fillStyle = world.groundColor;
+            ctx.fillRect(world.ground.x - cameraX, world.ground.y, world.ground.w, world.ground.h);
+            
+            // 4. Draw Concrete Bases (Now look like floor paths)
+            for (const base of world.bases) {
+                ctx.fillStyle = getDarkerColor(base.color, world.ambientLightFactor);
+                ctx.fillRect(base.x - cameraX, base.y, base.w, base.h);
+            }
+            
+            // 5. Draw PLAZA 
+            if (world.plaza) {
+                drawPlaza(world.plaza);
+            }
+            
+            // 6. Draw CAMPSITE 
+            if (world.campsite) {
+                drawCampsite(world.campsite);
+            }
+
+            // 7. Draw Houses and the Town Hall Bell
+            for (const house of world.houses) {
+                drawHouse(house);
+                drawTownHallBell(house);
+            }
+
+            // 8. Draw Props (Benches and Trash Cans)
+            for (const prop of world.props) {
+                drawProp(prop);
+            }
+
+            // 9. Draw Snow Layer (Drawn over everything solid for winter effect)
+            drawSnowLayer();
+            
+            // 10. Draw People
+            for (const person of world.people) {
+                drawPerson(person);
+            }
+
+            // 11. Draw Player
+            ctx.fillStyle = getDarkerColor(COLOR_PLAYER, world.ambientLightFactor);
+            ctx.fillRect(player.x - cameraX, player.y, player.w, player.h);
+            
+            // 12. Draw Particles (Rain/Snow) - Drawn last to be on top
+            drawParticles();
+
+            // 13. Draw Info (Dynamic color based on time of day)
+            const infoColor = world.currentTimeOfDay === 'night' ? '#ffffff' : COLOR_TEXT;
+            ctx.fillStyle = infoColor;
+            ctx.font = '10px "Press Start 2P"';
+            ctx.fillText(`X: ${Math.round(player.x)}, Y: ${Math.round(player.y)}`, 10, 20);
+            ctx.fillText(`Season: ${world.currentSeason.toUpperCase()}`, 10, 40); 
+            ctx.fillText(`Time: ${world.currentTimeOfDay.toUpperCase()}`, 10, 60); 
+        }
+
+        // --- GAME LOOP ---
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game when the window loads
+        window.onload = init;
+    </script>
+</body>
+</html>
