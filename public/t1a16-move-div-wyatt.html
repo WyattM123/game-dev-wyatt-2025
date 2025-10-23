@@ -13,44 +13,19 @@
     const myDiv= document.getElementById('myDiv01')
     myDiv.style.left = parseInt(myDiv.style.left + 20 +'px'
     }"Move Auto</button>
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barebones Looping Movement</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movement</title>
     <style>
-        .movement-stage {
-            position: relative;
-            width: 500px;
-            height: 100px;
-            border: 1px solid #ccc;
-        }
-        .movable-image {
-            position: absolute;
-            top: 25px;
-            left: 0;
-            width: 50px;
-            height: 50px;
-            animation: slide 3s infinite alternate;
-        }
-        @keyframes slide {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(200px);
-            }
-        }
+        body{display:grid;place-items:center;min-height:100vh;margin:0;background:#333;}
+        .stage{position:relative;width:400px;height:70px;background:#1e3a8a;overflow:hidden;}
+        .img{position:absolute;top:10px;left:0;width:50px;height:50px;animation:m 3s infinite alternate;}
+        @keyframes m{0%{transform:translateX(0);}100%{transform:translateX(350px);}}
     </style>
 </head>
 <body>
-    <div class="movement-stage">
-        <img class="movable-image" 
-             src="https://placehold.co/50x50/1e90ff/ffffff?text=IMG" 
-             alt="Movable Placeholder Image">
+    <div class="stage">
+        <img class="img" src="DataEntryScreenshot.png" title="Move an image">
     </div>
 </body>
 </html>
-
-    
