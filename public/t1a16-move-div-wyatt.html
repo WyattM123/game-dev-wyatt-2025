@@ -1,31 +1,74 @@
-<h1 align=center>t1a16-move-div-wyatt.html</h1>
+<h1 align="center">t1a16-move-div-wyatt.html</h1>
 
 8 Different types of objects moving in different ways ☺
 
-<div style="position:relative; left:0 right:0" id="myDiv01">...</div>
+<img id="myDiv01" 
+    src="public/origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+    style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;" 
+    title="This image is moved by the buttons below.">
 
 <button onClick="{
-  const myDiv = document.getElementById('myDiv01')
-  myDiv.style.left = '100px'
-  }">Move to 100px</button><br>
+    const myElement = document.getElementById('myDiv01');
+    myElement.style.left = '100px';
+}">Move to 100px</button><br>
 
-  <b onclick="{
-    const myDiv= document.getElementById('myDiv01')
-    myDiv.style.left = parseInt(myDiv.style.left + 20 +'px'
-    }"Move Auto</button>
+<button onClick="{
+    const myElement = document.getElementById('myDiv01');
+    const currentLeft = parseInt(myElement.style.left) || 0;
+    myElement.style.left = (currentLeft + 20) + 'px';
+}">Move Auto</button>
+
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movement</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body{display:grid;place-items:center;min-height:100vh;margin:0;background:#333;}
-        .stage{position:relative;width:400px;height:70px;background:#1e3a8a;overflow:hidden;}
-        .img{position:absolute;top:10px;left:0;width:50px;height:50px;animation:m 3s infinite alternate;}
-        @keyframes m{0%{transform:translateX(0);}100%{transform:translateX(350px);}}
+        body{background:white; margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #333;}
+        
+        .stage{
+            position:relative;
+            width:400px;
+            height:70px;
+            background:#1e3a8a;
+            overflow:hidden;
+            margin-top: 20px;
+        }
+        .img{
+            position:absolute;
+            top:10px;
+            left:0;
+            width:50px;
+            height:50px;
+            transition: left 0.05s linear;
+        }
     </style>
 </head>
 <body>
     <div class="stage">
-        <img class="img" src="DataEntryScreenshot.png" title="Move an image">
-    </div>
+        <img id="imageToMove" class="img" src="public/origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" title="Move an image">
+    </div>    
+    <script>
+        let moveSpeed = 5;
+        let animationInterval = 50;
+        const maxPosition = 350;
+        const minPosition = 0;
+        const image = document.getElementById('imageToMove');
+        let currentPosition = 0;
+        let direction = 1;
+        function moveImage() {
+            currentPosition += moveSpeed * direction;
+            if (currentPosition >= maxPosition) {
+                currentPosition = maxPosition;
+                direction = -1;
+            } else if (currentPosition <= minPosition) {
+                currentPosition = minPosition;
+                direction = 1;
+            }
+
+            image.style.left = currentPosition + 'px';
+        }
+
+        window.onload = function() {
+            setInterval(moveImage, animationInterval);
+        };
+    </script>
 </body>
-</html>
