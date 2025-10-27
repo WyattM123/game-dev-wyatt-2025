@@ -1,26 +1,9 @@
-<h1 align="center">t1a16-move-div-wyatt.html</h1>
-
-8 Different types of objects moving in different ways ☺<br<br>
-
-<img id="myDiv01" 
-    src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
-    style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;" 
-    title="This image is moved by the buttons below."><br>
-
-<button onClick="{
-    const myElement = document.getElementById('myDiv01');
-    myElement.style.left = '100px';
-}">Move to 100px</button><br>
-
-<button onClick="{
-    const myElement = document.getElementById('myDiv01');
-    const currentLeft = parseInt(myElement.style.left) || 0;
-    myElement.style.left = (currentLeft + 20) + 'px';
-}">Move Auto</button>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Different Types of Moving Objects</title>
     <style>
         body{background:white; margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #333;}
         
@@ -28,9 +11,10 @@
             position:relative;
             width:400px;
             height:70px;
-            background:#1e3a8a;
+            background:#1e3a8a; /* Dark Blue */
             overflow:hidden;
             margin-top: 20px;
+            border-radius: 8px; /* Aesthetic improvement */
         }
         .img{
             position:absolute;
@@ -43,19 +27,45 @@
     </style>
 </head>
 <body>
+    <h1 align="center">t1a16-move-div-wyatt.html</h1>
+
+    8 Different types of objects moving in different ways ☺<br><br>
+
+    <img id="myDiv01" 
+        src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+        style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;" 
+        title="This image is moved by the buttons below."><br>
+
+    <button onClick="{
+        const myElement = document.getElementById('myDiv01');
+        myElement.style.left = '100px';
+    }">Move to 100px</button><br>
+
+    <button onClick="{
+        toggleMovement();
+    }">Move Auto</button> 
+    
     <div class="stage">
-        <img id="imageToMove" class="img" src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" title="Move an image">
+        <img id="imageToMove" class="img" 
+             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+             title="Move an image">
     </div>    
+    
     <script>
+        let intervalId = null; 
+
         let moveSpeed = 5;
         let animationInterval = 50;
         const maxPosition = 350;
         const minPosition = 0;
+        
         const image = document.getElementById('imageToMove');
         let currentPosition = 0;
         let direction = 1;
+
         function moveImage() {
-            currentPosition += moveSpeed * direction;
+            if (!image) return; 
+            currentPosition += moveSpeed * direction;          
             if (currentPosition >= maxPosition) {
                 currentPosition = maxPosition;
                 direction = -1;
@@ -63,12 +73,29 @@
                 currentPosition = minPosition;
                 direction = 1;
             }
-
             image.style.left = currentPosition + 'px';
         }
-
+        function startAutoMove() {
+            if (intervalId === null) {
+                intervalId = setInterval(moveImage, animationInterval);
+            }
+        }
+        function stopAutoMove() {
+            if (intervalId !== null) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+        function toggleMovement() {
+            if (intervalId !== null) {
+                stopAutoMove();
+            } else {
+                startAutoMove();
+            }
+        }
         window.onload = function() {
-            setInterval(moveImage, animationInterval);
+            startAutoMove();
         };
     </script>
 </body>
+</html>
