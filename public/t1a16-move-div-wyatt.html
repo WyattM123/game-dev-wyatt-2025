@@ -38,11 +38,17 @@
              style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
         <button onClick="{
             const myElement = document.getElementById('myDiv01');
-            // Get current left position, parse it, add 100
             let currentLeft = parseInt(myElement.style.left) || 0;
             let newLeft = currentLeft + 100; 
             myElement.style.left = newLeft + 'px';
         }">Click image to move 100px</button>
+    </div>
+        <button onClick="{
+            const myElement = document.getElementById('myDiv01');
+            let currentLeft = parseInt(myElement.style.left) || 0;
+            let newLeft = currentLeft - 100; 
+            myElement.style.left = newLeft + 'px';
+        }">Click image to move -100px</button>
     </div>
 
     <button id="autoMoveButton" onClick="toggleMovement()">Stop Auto Move</button>
