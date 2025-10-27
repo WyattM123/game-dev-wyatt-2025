@@ -10,7 +10,7 @@
             position:relative;
             width:400px;
             height:70px;
-            background:#1e3a8a;
+            background:white;
             overflow:hidden;
             margin-top: 20px;
             border-radius: 8px;
@@ -30,31 +30,46 @@
     <h1 align="center">t1a16-move-div-wyatt.html</h1>
 
     8 Different types of objects moving in different ways ☺<br><br>
-
-    <img id="myDiv01" 
-        src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
-        style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;" 
-
-    <button onClick="{
-        const myElement = document.getElementById('myDiv01');
-        myElement.style.left = '100px';
-    }">Move to 100px</button><br>
-
-    <button id="autoMoveButton" onClick="toggleMovement()">Move Auto</button> 
     
-    <div class="stage">
-        <img id="imageToMove" class="img" 
-              src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
-              title="Move an image">
-    </div>        
-    <div style="position:relative; width:400px; height:70px; overflow:hidden;">
-        <img id="sliderImage"
-             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp"
-             style="position:absolute; top:10px; left:0; width:50px; height:50px;"
+    <div>
+        <img id="myDiv01" 
+             src="https://placehold.co/60x60/8b5cf6/ffffff?text=Click" 
+             style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
+        <button onClick="{
+            const myElement = document.getElementById('myDiv01');
+            // Get current left position, parse it, add 100
+            let currentLeft = parseInt(myElement.style.left) || 0;
+            let newLeft = currentLeft + 100; 
+            myElement.style.left = newLeft + 'px';
+        }">Click image to move 100px</button>
     </div>
+
+    <button id="autoMoveButton" onClick="toggleMovement()">Stop Auto Move</button>
+    <div class="stage">
+        <img id="imageToMove" class="img"
+              src="https://placehold.co/50x50/065f46/ffffff?text=Auto" 
+              title="Move an image">
+    </div>
+
+    <br>
+    <div class="stage">
+        <img id="sliderImage"
+              src="https://placehold.co/50x50/ca8a04/ffffff?text=Slider"
+              style="position:absolute; top:10px; left:0; width:50px; height:50px; border-radius: 4px;"
+        >
+    </div>
+    <input type="range" id="movementSlider" min="0" max="350" value="0" style="width: 400px; margin-top: 5px;">
     
-    <input type="range" id="movementSlider" min="0" max="350" value="0">
-    
+    <br>
+    Set the image position to whatever you type in the text box:
+    <div style="position:relative; width:400px; height:70px; background:white; margin-top: 20px; border-radius: 8px;">
+        <img id="inputMoveImage"
+             src="https://placehold.co/50x50/ef4444/ffffff?text=Input"
+             title="Move by Text Input"
+             style="position:absolute; top:10px; left:0; width:50px; height:50px; border-radius: 4px;">
+    </div>
+    <input type="number" id="positionInput" value="0" style="padding: 4px; border: 1px solid #ccc; width: 80px;">
+    <button onClick="moveByInput()">Set Position</button>
 
     <script>
         let intervalId = null; 
@@ -62,7 +77,6 @@
         let animationInterval = 50;
         const maxPosition = 350;
         const minPosition = 0;
-        
         const image = document.getElementById('imageToMove');
         let currentPosition = 0;
         let direction = 1;
@@ -79,24 +93,24 @@
             }
             image.style.left = currentPosition + 'px';
             updateButtonText();
-        }
+        }       
         function startAutoMove() {
             if (intervalId === null) {
                 intervalId = setInterval(moveImage, animationInterval);
             }
-        }
+        }       
         function stopAutoMove() {
             if (intervalId !== null) {
                 clearInterval(intervalId);
                 intervalId = null;
             }
-        }
+        }        
         function updateButtonText() {
-             const button = document.getElementById('autoMoveButton');
-             if (button) {
-                button.textContent = intervalId !== null ? 'Stop Auto Move' : 'Move Auto';
-             }
-        }
+            const button = document.getElementById('autoMoveButton');
+            if (button) {
+                button.textContent = intervalId !== null ? 'Stop Auto Move' : 'Start Auto Move';
+            }
+        }     
         function toggleMovement() {
             if (intervalId !== null) {
                 stopAutoMove();
@@ -112,7 +126,22 @@
             slider.addEventListener('input', function() {
                 sliderImage.style.left = this.value + 'px';
             });
-        }        
+        }
+        function moveByInput() {
+            const input = document.getElementById('positionInput');
+            const image = document.getElementById('inputMoveImage');
+            
+            if (!input || !image) return;
+
+            // Get the value and convert to a number
+            let position = parseInt(input.value);
+
+            if (isNaN(position)) {
+                position = 0;
+                input.value = 0;
+            }
+            image.style.left = position + 'px';
+        }
         window.onload = function() {
             startAutoMove();
             updateButtonText();
