@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>8 Different Types of Moving Objects</title>
     <style>
-        body{background:white; margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #333;}
-        
+        body{background:white; margin: 0; padding: 20px; font-family: 'Inter', Arial, sans-serif; color: #333;}
         .stage{
             position:relative;
             width:400px;
             height:70px;
-            background:#1e3a8a; /* Dark Blue */
+            background:#1e3a8a;
             overflow:hidden;
             margin-top: 20px;
-            border-radius: 8px; /* Aesthetic improvement */
+            border-radius: 8px;
         }
         .img{
             position:absolute;
@@ -23,6 +22,7 @@
             width:50px;
             height:50px;
             transition: left 0.05s linear;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -41,19 +41,25 @@
         myElement.style.left = '100px';
     }">Move to 100px</button><br>
 
-    <button onClick="{
-        toggleMovement();
-    }">Move Auto</button> 
+    <button id="autoMoveButton" onClick="toggleMovement()">Move Auto</button> 
     
     <div class="stage">
         <img id="imageToMove" class="img" 
-             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
-             title="Move an image">
-    </div>    
+              src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+              title="Move an image">
+    </div>        
+    <div style="position:relative; width:400px; height:70px; overflow:hidden;">
+        <img id="sliderImage"
+             src="https://placehold.co/50x50/34d399/ffffff?text=Slider"
+             style="position:absolute; top:10px; left:0; width:50px; height:50px;"
+             title="Move an image with the slider">
+    </div>
     
+    <input type="range" id="movementSlider" min="0" max="350" value="0">
+    
+
     <script>
         let intervalId = null; 
-
         let moveSpeed = 5;
         let animationInterval = 50;
         const maxPosition = 350;
@@ -74,6 +80,7 @@
                 direction = 1;
             }
             image.style.left = currentPosition + 'px';
+            updateButtonText();
         }
         function startAutoMove() {
             if (intervalId === null) {
@@ -86,15 +93,31 @@
                 intervalId = null;
             }
         }
+        function updateButtonText() {
+             const button = document.getElementById('autoMoveButton');
+             if (button) {
+                button.textContent = intervalId !== null ? 'Stop Auto Move' : 'Move Auto';
+             }
+        }
         function toggleMovement() {
             if (intervalId !== null) {
                 stopAutoMove();
             } else {
                 startAutoMove();
             }
+            updateButtonText();
         }
+        const slider = document.getElementById('movementSlider');
+        const sliderImage = document.getElementById('sliderImage');
+
+        if (slider && sliderImage) {
+            slider.addEventListener('input', function() {
+                sliderImage.style.left = this.value + 'px';
+            });
+        }        
         window.onload = function() {
             startAutoMove();
+            updateButtonText();
         };
     </script>
 </body>
