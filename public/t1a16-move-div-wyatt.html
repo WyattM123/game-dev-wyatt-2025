@@ -57,16 +57,16 @@
              style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
         <button onClick="{
             const myElement = document.getElementById('myDiv01');
-            let currentUp = parseInt(myElement.style.up) || 0;
-            let newUp = currentUp + 100; 
-            myElement.style.up = neUp + 'px';
+            let currentTop = parseInt(myElement.style.top) || 0;
+            let newUp = currentTop + 100; 
+            myElement.style.top = newTop + 'px';
         }">Click image to move up 100px</button>
     </div>
         <button onClick="{
             const myElement = document.getElementById('myDiv01');
-            let currentUp = parseInt(myElement.style.Up) || 0;
-            let newUp = currentUp - 100; 
-            myElement.style.up = newUp + 'px';
+            let currentTop = parseInt(myElement.style.top) || 0;
+            let newUp = currentTop - 100; 
+            myElement.style.top = newTop + 'px';
         }">Click image to move down 100px</button>
     </div><br><br>
 
