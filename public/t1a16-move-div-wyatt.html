@@ -32,49 +32,45 @@
     8 Different types of objects moving in different ways ☺<br><br>
     
     <div>
-        <img id="myDiv01" 
-             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp
-" 
+        <img id="myDivLeftRight" 
+             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
              style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
         <button onClick="{
-            const myElement = document.getElementById('myDiv01');
+            const myElement = document.getElementById('myDivLeftRight');
             let currentLeft = parseInt(myElement.style.left) || 0;
             let newLeft = currentLeft + 100; 
             myElement.style.left = newLeft + 'px';
         }">Click image to move 100px</button>
-    </div>
         <button onClick="{
-            const myElement = document.getElementById('myDiv01');
+            const myElement = document.getElementById('myDivLeftRight');
             let currentLeft = parseInt(myElement.style.left) || 0;
             let newLeft = currentLeft - 100; 
             myElement.style.left = newLeft + 'px';
         }">Click image to move -100px</button>
     </div><br><br>
-    <div>
-        <img id="myDiv01" 
-             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp
-" 
-             style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
-        <button onClick="{
-            const myElement = document.getElementById('myDiv01');
-            let currentTop = parseInt(myElement.style.top) || 0;
-            let newUp = currentTop + 100; 
-            myElement.style.top = newTop + 'px';
-        }">Click image to move up 100px</button>
+
+    <div style="position: relative; height: 120px;">
+        <img id="myDivUpDown" 
+             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+             style="position:absolute; top:0px; left:0px; width: 60px; height: 60px; border: 1px solid #ccc;">
     </div>
-        <button onClick="{
-            const myElement = document.getElementById('myDiv01');
-            let currentTop = parseInt(myElement.style.top) || 0;
-            let newUp = currentTop - 100; 
-            myElement.style.top = newTop + 'px';
-        }">Click image to move down 100px</button>
-    </div><br><br>
+    <button onClick="{
+        const myElement = document.getElementById('myDivUpDown');
+        let currentTop = parseInt(myElement.style.top) || 0;
+        let newTop = currentTop - 100; 
+        myElement.style.top = newTop + 'px';
+    }">Click image to move up 100px</button>
+    <button onClick="{
+        const myElement = document.getElementById('myDivUpDown');
+        let currentTop = parseInt(myElement.style.top) || 0;
+        let newTop = currentTop + 100; 
+        myElement.style.top = newTop + 'px';
+    }">Click image to move down 100px</button><br><br>
 
     <button id="autoMoveButton" onClick="toggleMovement()">Stop Auto Move</button>
     <div class="stage">
         <img id="imageToMove" class="img"
-              src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp
-" 
+              src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
               title="Move an image">
     </div>
 
@@ -97,6 +93,13 @@
     </div>
     <input type="number" id="positionInput" value="0" style="padding: 4px; border: 1px solid #ccc; width: 80px;">
     <button onClick="moveByInput()">Set Position</button>
+
+    <br><br>
+    <div class="stage" id="mouseStage" style="height:150px;">
+        <img id="mouseFollower" 
+             src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
+             style="position:absolute; top:50px; left:50px; width:60px; height:60px; border-radius:50%;">
+    </div>
 
     <script>
         let intervalId = null; 
@@ -157,18 +160,23 @@
         function moveByInput() {
             const input = document.getElementById('positionInput');
             const image = document.getElementById('inputMoveImage');
-            
             if (!input || !image) return;
-
-            // Get the value and convert to a number
             let position = parseInt(input.value);
-
             if (isNaN(position)) {
                 position = 0;
                 input.value = 0;
             }
             image.style.left = position + 'px';
         }
+        const mouseStage = document.getElementById('mouseStage');
+        const mouseFollower = document.getElementById('mouseFollower');
+        mouseStage.addEventListener('mousemove', function(e) {
+            const rect = mouseStage.getBoundingClientRect();
+            const x = e.clientX - rect.left - mouseFollower.width / 2;
+            const y = e.clientY - rect.top - mouseFollower.height / 2;
+            mouseFollower.style.left = x + 'px';
+            mouseFollower.style.top = y + 'px';
+        });
         window.onload = function() {
             startAutoMove();
             updateButtonText();
