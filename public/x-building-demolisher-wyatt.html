@@ -109,8 +109,8 @@
         // LIST OF SIGN TEXT
         const SIGN_TEXT_OPTIONS = [
             "Gemini Towers", "bruh", "BUILDING", "Apartment", 
-            "Data Center", "Vacant", "Closed", "Logang Inc", 
-            "Illia Corp", "<Center>", "AI Servers", "Cheese Factory", "Cam Corp", "(David's)", "|LOCAL - MALL|", "News25", "\PEPPERONI/", "{SODA POP}", "MSS in 3y", "[logang] 2.99"
+            "Data Center", "Vacant", "Closed", "Logang Inc", "Amazon", "SHEIN", "ChatGPT", "Crumbgeek", "AJT Studios", "News41", "News67", "Building", "CLOSED" 
+            "Illia Corp", "<Center>", "AI Servers", "Cheese Factory", "Cam Corp", "(David's)", "|LOCAL - MALL|", "News25", "PEPPERONI", "{SODA POP}", "MSS in 3y", "logang $2.99"
         ];
         
         // --- Core Functions ---
@@ -254,7 +254,7 @@
             
             // High-Rise Configuration (e.g., 5x5 base, 8-15 floors)
             currentNumFloors = Math.floor(Math.random() * (15 - 8 + 1)) + 8; // 8 to 15 floors
-            const baseN = Math.floor(Math.random() * (6 - 4 + 1)) + 4; // 4 to 6 blocks wide base
+            const baseN = Math.floor(Math.random() * (8 - 4 + 1)) + 4; // 4 to 8 blocks wide base
             currentBlocksX = baseN;
             currentBlocksZ = baseN;
             console.log(`Generated Tower: ${currentBlocksX}x${currentBlocksZ} base, ${currentNumFloors} floors. Sign: ${randomText}`);
