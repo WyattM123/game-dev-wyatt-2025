@@ -1,9 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>t2a17-prince-wyatt.html</title>
+    <style>
+        #moving-box {
+            position: relative; 
+            left: 0px; 
+            width: 60px; 
+            height: 60px; 
+            border: 1px solid #ccc; 
+            margin-bottom: 15px;
+            background-image: url('origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp');
+        }
+    </style>
     <script>
         const crownPathPoints = [
             { x: 20, y: 180 },
@@ -29,8 +38,8 @@
             }
             const target = crownPathPoints[currentPointIndex];
 
-            box.style.left = `${target.x}px`;
-            box.style.top = `${target.y}px`;
+            box.style.left = target.x + 'px';
+            box.style.top = target.y + 'px';
 
             currentPointIndex++;
             setTimeout(moveToNextPoint, 1000); 
@@ -45,8 +54,8 @@
             const box = document.getElementById('moving-box');
             
             box.style.transition = 'none';
-            box.style.left = `${startPoint.x}px`;
-            box.style.top = `${startPoint.y}px`;
+            box.style.left = startPoint.x + 'px';
+            box.style.top = startPoint.y + 'px';
             setTimeout(() => {
                 box.style.transition = 'all 1.0s ease-in-out';
                 currentPointIndex = 1;
@@ -59,13 +68,12 @@
 <body>
 
     <button id="animate-button" onclick="startAnimation()">
+        Start Crown Animation
     </button>
 
     <div id="path-container" style="width: 400px; height: 200px; position: relative; border: 1px solid black; margin-top: 10px;">
-        <div id="moving-box" src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" 
-             style="position:relative; left:0px; width: 60px; height: 60px; border: 1px solid #ccc; margin-bottom: 15px;">
+        <div id="moving-box">
         </div>
     </div>
 
 </body>
-</html>
