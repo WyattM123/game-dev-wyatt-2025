@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crown Path Animator</title>
+    <script>
+        const crownPathPoints = [
+            { x: 20, y: 180 },
+            { x: 20, y: 100 },
+            { x: 80, y: 30 },
+            { x: 140, y: 100 },
+            { x: 200, y: 30 },
+            { x: 260, y: 100 },
+            { x: 320, y: 30 },
+            { x: 380, y: 100 },
+            { x: 380, y: 180 },
+            { x: 20, y: 180 }
+        ];
+        let currentPointIndex = 0;
+        let isAnimating = false;
+        function moveToNextPoint() {
+            const box = document.getElementById('moving-box');
+            if (currentPointIndex >= crownPathPoints.length) {
+                isAnimating = false;
+                currentPointIndex = 0;
+                document.getElementById('animate-button').disabled = false;
+                return;
+            }
+            const target = crownPathPoints[currentPointIndex];
 
+            box.style.left = `${target.x}px`;
+            box.style.top = `${target.y}px`;
+
+            currentPointIndex++;
+            setTimeout(moveToNextPoint, 1000); 
+        }
+        function startAnimation() {
+            if (isAnimating) return;
+
+            isAnimating = true;
+            document.getElementById('animate-button').disabled = true;
+
+            const startPoint = crownPathPoints[0];
+            const box = document.getElementById('moving-box');
+            
+            box.style.transition = 'none';
+            box.style.left = `${startPoint.x}px`;
+            box.style.top = `${startPoint.y}px`;
+            setTimeout(() => {
+                box.style.transition = 'all 1.0s ease-in-out';
+                currentPointIndex = 1;
+                moveToNextPoint();
+            }, 50);
+        }
+        window.startAnimation = startAnimation;
+    </script>
+</head>
+<body>
+
+    <button id="animate-button" onclick="startAnimation()">
+    </button>
+
+    <div id="path-container" style="width: 400px; height: 200px; position: relative; border: 1px solid black; margin-top: 10px;">
+        <div id="moving-box" style="width: 15px; height: 15px; background-color: green; position: absolute; transition: all 1.0s ease-in-out; transform: translate(-50%, -50%);">
+        </div>
+    </div>
+
+</body>
+</html>
