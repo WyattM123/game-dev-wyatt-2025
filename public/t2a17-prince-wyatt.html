@@ -37,19 +37,15 @@
                 return;
             }
             const target = crownPathPoints[currentPointIndex];
-
             box.style.left = target.x + 'px';
             box.style.top = target.y + 'px';
-
             currentPointIndex++;
             setTimeout(moveToNextPoint, 1000); 
         }
         function startAnimation() {
             if (isAnimating) return;
-
             isAnimating = true;
             document.getElementById('animate-button').disabled = true;
-
             const startPoint = crownPathPoints[0];
             const box = document.getElementById('moving-box');
             
