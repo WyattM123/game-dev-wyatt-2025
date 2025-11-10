@@ -25,6 +25,7 @@
 <input type=button value="Reverse The String" onclick="{
   mySquareFunction()
 }"><br>
+<p id="output" style="font-weight: bold;"></p>
 
 <pre>
 This code is in the pre tag
@@ -33,5 +34,13 @@ This code is in the pre tag
 </pre>
 
 <br><br><li> Put the chatGPT working code here. (Sensibly, it does not need several tags that are not used)
+
+<script>
+  function mySquareFunction() {
+    let s = ["C", "A", "M"];
+    // Simplified version using built-in reverse() and join()
+    document.getElementById("output").textContent = s.reverse().join("");
+  }
+</script>
 
 </ol>
