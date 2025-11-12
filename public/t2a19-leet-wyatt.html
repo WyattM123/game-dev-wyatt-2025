@@ -9,6 +9,8 @@
   function mySquareFunction() {
     let s = ["C", "A", "M"];
 
+    document.getElementById("output").textContent = s.join("");
+
     let left = 0;
     let right = s.length - 1;
     while (left < right) {
@@ -38,10 +40,13 @@ This code is in the pre tag
 <script>
   function mySquareFunction() {
     let s = ["C", "A", "M"];
+    document.getElementById("output").textContent = s.join("");
     // Simplified version using built-in reverse() and join()
     document.getElementById("output").textContent = s.reverse().join("");
   }
-<p id="output" style="font-weight: bold;"></p>
 </script>
+
+<input type="button" value="Reverse The String" onclick="mySquareFunction()"><br>
+<p id="output" style="font-weight: bold;"></p>
 
 </ol>
