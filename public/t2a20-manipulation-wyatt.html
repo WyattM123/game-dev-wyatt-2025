@@ -1,26 +1,45 @@
-<h1 align=centert2a20-manipulation-wyatt.html</h1>
-  String, Array, Object manipulation methods<br>
+<h2>t2a20-manipulation-wyatt</h2>
 
-  <input id="myNum01" type=text value="This is a string" ><br>
-  <span id="mySpan01">...</span><br>
+<input id="myNum01" type=text value="This is a string"><br>
+<span id="mySpan01">Object</span><br><br>
 
-  <input type=button value'".toUpperCase()" onclick="{
-  let myIn = document.getElementById('myNm01').value
-  document.getElementById('mySpan01').innerHTML = myIn.toUpperCase()
-  }"><br>
-
-  <input type=button value=".split() makes and array" onclick="{
-    let myIn = document.getElementById('myNum01').value
-    document.getElementById('mySpan01').innerHTML = myIn.split('')
-    }"><br>
-
-  <input type=button value="Object.keys() returns array" onclick="{
-    let myObject = {
+<script>
+  let myObject = {
     first: 10,
-    second: 'Crumbgek',
+    second: 'Crumbgeek',
     third: true
-}
-    let keyArray = Object.keys(myObject)
-    document.getElementById('mySpan01').innerHTML = keyArray
-    }"><br>
-    
+  }
+  function showObject() {
+    document.getElementById('mySpan01').innerHTML = JSON.stringify(myObject, null, 2)
+  }
+</script>
+<input type=button value="Show Object.values()" onclick="{
+  let values = Object.values(myObject)
+  document.getElementById('mySpan01').innerHTML = values
+}">
+<br>
+<input type=button value="Show Object.entries()" onclick="{
+  let entries = Object.entries(myObject)
+  document.getElementById('mySpan01').innerHTML = JSON.stringify(entries)
+}">
+<br>
+<input type=button value='Add new property "newProp"' onclick="{
+  myObject.newProp = 'woah no way I was added'
+  showObject()
+}">
+<br>
+<input type=button value='Modify "second" property' onclick="{
+  myObject.second = 'got updated oh yeah'
+  showObject()
+}">
+<br>
+<input type=button value='Delete "third" property' onclick="{
+  delete myObject.third
+  showObject()
+}">
+<br>
+<input type=button value='Does "third" exist?' onclick="{
+  let exists = myObject.hasOwnProperty('third')
+  document.getElementById('mySpan01').innerHTML = 'third exists? ' + exists
+}">
+<br>
