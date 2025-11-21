@@ -1,26 +1,24 @@
-<h1 align="center">t2a22-json-wyatt.html</h1>
+<h1 align="center">Random Duck Image + Phrase</h1>
 
 <script>
-  async function fetchData(url){
+  async function fetchDuck() {
+    const url = "https://random-d.uk/api/v2/random";
     const response = await fetch(url);
-    const data =  await response.json();
+    const data = await response.json();
 
     console.log(data);
 
-    const myJson = JSON.stringify(data, null, 2);
-    document.getElementById('myDiv1').innerHTML = `<pre>${myJson}</pre>`;
+    document.getElementById('output').innerHTML =
+      `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 
-    const imgSrc = data.image || data.url;
+    document.getElementById('output').innerHTML +=
+      `<p style="font-size:20px;"><b>Duck says:</b> ${data.message}</p>`;
 
-    document.getElementById('myDiv1').innerHTML += 
-      `<img src="${imgSrc}" alt="Random Image" style="max-width: 100%; height: auto;">`;
+    document.getElementById('output').innerHTML +=
+      `<img src="${data.url}" style="max-width:300px; display:block; margin-top:10px;">`;
   }
 </script>
 
-<select id="mySelect" size="1" onchange="fetchData(this.value)">
-  <option ></option>
-  <option value="https://randomfox.ca/floof/">randomfox</option>
-  <option value="https://random-d.uk/api/v2/quack">randomduck</option>
-</select><br><br>
+<button onclick="fetchDuck()">Get Random Duck</button>
 
-<div id="myDiv1">...</div>
+<div id="output">...</div>
