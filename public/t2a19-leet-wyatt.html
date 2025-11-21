@@ -7,9 +7,7 @@
 
 <script>
   function mySquareFunction() {
-    let s = ["C", "A", "M"];
-
-    document.getElementById("output").textContent = s.join("");
+    let s = document.getElementById("textInput1").value.split("");
 
     let left = 0;
     let right = s.length - 1;
@@ -20,14 +18,15 @@
       left++;
       right--;
     }
-    document.getElementById("output").textContent = s.join("");
+    document.getElementById("output1").textContent = s.join("");
   }
-    
 </script>
+
+<input id="textInput1" value="CAM">
 <input type=button value="Reverse The String" onclick="{
   mySquareFunction()
 }"><br>
-<p id="output" style="font-weight: bold;"></p>
+<p id="output1" style="font-weight: bold;"></p>
 
 <pre>
 This code is in the pre tag
@@ -38,15 +37,14 @@ This code is in the pre tag
 <br><br><li> Put the chatGPT working code here. (Sensibly, it does not need several tags that are not used)
 
 <script>
-  function mySquareFunction() {
-    let s = ["C", "A", "M"];
-    document.getElementById("output").textContent = s.join("");
-    // Simplified version using built-in reverse() and join()
-    document.getElementById("output").textContent = s.reverse().join("");
+  function mySquareFunction2() {
+    let s = document.getElementById("textInput2").value.split("");
+    document.getElementById("output2").textContent = s.reverse().join("");
   }
 </script>
 
-<input type="button" value="Reverse The String" onclick="mySquareFunction()"><br>
-<p id="output" style="font-weight: bold;"></p>
+<input id="textInput2" value="CAM">
+<input type="button" value="Reverse The String" onclick="mySquareFunction2()"><br>
+<p id="output2" style="font-weight: bold;"></p>
 
 </ol>
