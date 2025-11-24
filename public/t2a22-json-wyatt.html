@@ -1,29 +1,37 @@
 <h1 align="center">t2a22-json-wyatt.html</h1>
 
 <script>
-  async function fetchData(url){
-    const response = await fetch(url);
-    const data =  await response.json();
+async function fetchData(url) {
+  const response = await fetch(url, {
+    headers: { "Accept": "application/json" }
+  });
 
-    console.log(data);
+  const data = await response.json();
 
-    const myJson = JSON.stringify(data, null, 2);
-    document.getElementById('myDiv1').innerHTML = `<pre>${myJson}</pre>`;
+  const myJson = JSON.stringify(data, null, 2);
+  document.getElementById('myDiv1').innerHTML = `<pre>${myJson}</pre>`;
 
-    const imgSrc = data.image || data.url;
+  const imgSrc = data.image || data.url;
+  const joke = data.joke || data.setup;
 
-    document.getElementById('myDiv1').innerHTML += 
+  if (imgSrc) {
+    document.getElementById('myDiv1').innerHTML +=
       `<img src="${imgSrc}" alt="Random Image" style="max-width: 100%; height: auto;">`;
   }
+
+  if (joke) {
+    document.getElementById('myDiv1').innerHTML +=
+      `<p>${joke}</p>`;
+  }
+}
 </script>
 
 <select id="mySelect" size="1" onchange="fetchData(this.value)">
-  <option ></option>
+  <option></option>
   <option value="https://randomfox.ca/floof/">randomfox</option>
   <option value="https://random.dog/woof.json">randomDAWG</option>
-  <option value="https://aws.random.cat/meow">Random Cat</option>
-  <option value="https://shibe.online/api/cats?count=1">Shibe Cat</option>
-  <option value="https://shibe.online/api/birds?count=1">Random Bird</option>
-</select><br><br>
+  <option value="https://icanhazdadjoke.com/">Dad Joke</option>
+  <option value="https://random-d.uk/api/random">randomDUCK</option>
+</select>
 
-<div id="myDiv1">...</div>
+<div id="myDiv1"></div>
