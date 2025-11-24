@@ -3,27 +3,13 @@
 <script>
 async function fetchData(url) {
   try {
-    let fetchUrl = url;
-    let isDuck = false;
-    if (url.includes("random-d.uk")) {
-      fetchUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
-      isDuck = true;
-    }
+    const response = await fetch(url, { headers: { "Accept": "application/json" } });
+    const data = await response.json();
 
-    const response = await fetch(fetchUrl, { headers: { "Accept": "application/json" } });
-    let data;
-    if (isDuck) {
-      const proxyData = await response.json();
-      data = JSON.parse(proxyData.contents);
-    } else {
-      data = await response.json();
-    }
-
-    const myJson = JSON.stringify(data, null, 2);
     const container = document.getElementById('myDiv1');
-    container.innerHTML = `<pre>${myJson}</pre>`;
+    container.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 
-    const imgSrc = data.image || data.url;
+    const imgSrc = data.image || data.url || (Array.isArray(data) ? data[0] : null);
     if (imgSrc) {
       container.innerHTML += `<img src="${imgSrc}" alt="Random Image" style="max-width:100%;height:auto;">`;
     }
@@ -40,13 +26,12 @@ async function fetchData(url) {
 }
 </script>
 
-
 <select id="mySelect" size="1" onchange="fetchData(this.value)">
   <option></option>
   <option value="https://randomfox.ca/floof/">randomfox</option>
   <option value="https://random.dog/woof.json">randomDAWG</option>
   <option value="https://icanhazdadjoke.com/">Dad Joke</option>
-  <option value="https://random-d.uk/api/random">randomDUCK</option>
+  <option value="https://shibe.online/api/shibes?count=1">Random Shibe</option>
   <option value="https://v2.jokeapi.dev/joke/Programming?type=single">Programming Joke</option>
 </select>
 
