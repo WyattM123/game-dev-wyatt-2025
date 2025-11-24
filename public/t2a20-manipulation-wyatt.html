@@ -4,51 +4,45 @@
 <span id="mySpan01">String Output</span><br><br>
 
 <script>
-  let myString = "Crumbgeek"
-
-  function showString() {
-    document.getElementById('mySpan01').innerHTML = myString
+  function showString(str) {
+    document.getElementById('mySpan01').innerHTML = str
   }
 </script>
 
-<input type=button value="Show .length" onclick="{
-  let len = myString.length
-  document.getElementById('mySpan01').innerHTML = 'Length: ' + len
-}">
-<br>
+<input type="button" value="Show .length" onclick="{
+  let str = document.getElementById('myNum01').value;
+  showString('Length: ' + str.length);
+}"><br>
 
-<input type=button value='Show chars (split)' onclick="{
-  let chars = myString.split('')
-  document.getElementById('mySpan01').innerHTML = chars
-}">
-<br>
+<input type="button" value="Show chars (split)" onclick="{
+  let str = document.getElementById('myNum01').value;
+  showString(str.split(''));
+}"><br>
 
-<input type=button value='Show upper/lower' onclick="{
-  document.getElementById('mySpan01').innerHTML =
-    'Upper: ' + myString.toUpperCase() + '<br>Lower: ' + myString.toLowerCase()
-}">
-<br>
+<input type="button" value="Show upper/lower" onclick="{
+  let str = document.getElementById('myNum01').value;
+  showString('Upper: ' + str.toUpperCase() + '<br>Lower: ' + str.toLowerCase());
+}"><br>
 
-<input type=button value='Add new text' onclick="{
-  myString += ' wagwan'
-  showString()
-}">
-<br>
+<input type="button" value="Add new text" onclick="{
+  let str = document.getElementById('myNum01').value + ' wagwan';
+  document.getElementById('myNum01').value = str;
+  showString(str);
+}"><br>
 
-<input type=button value='Replace "geek" with "lord"' onclick="{
-  myString = myString.replace('geek', 'lord')
-  showString()
-}">
-<br>
+<input type="button" value='Replace "geek" with "lord"' onclick="{
+  let str = document.getElementById('myNum01').value.replace('geek', 'lord');
+  document.getElementById('myNum01').value = str;
+  showString(str);
+}"><br>
 
-<input type=button value='Delete first 3 chars' onclick="{
-  myString = myString.slice(3)
-  showString()
-}">
-<br>
+<input type="button" value="Delete first 3 chars" onclick="{
+  let str = document.getElementById('myNum01').value.slice(3);
+  document.getElementById('myNum01').value = str;
+  showString(str);
+}"><br>
 
-<input type=button value='Does "geek" exist?' onclick="{
-  let exists = myString.includes('geek')
-  document.getElementById('mySpan01').innerHTML = 'Contains \"geek\"? ' + exists
-}">
-<br>
+<input type="button" value='Does "geek" exist?' onclick="{
+  let str = document.getElementById('myNum01').value;
+  showString('Contains "geek"? ' + str.includes('geek'));
+}"><br>
