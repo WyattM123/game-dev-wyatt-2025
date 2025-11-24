@@ -1,45 +1,54 @@
 <h2>t2a20-manipulation-wyatt</h2>
 
-<input id="myNum01" type=text value="This is a string"><br>
-<span id="mySpan01">Object</span><br><br>
+<input id="myNum01" type="text" value="Crumbgeek"><br>
+<span id="mySpan01">String Output</span><br><br>
 
 <script>
-  let myObject = {
-    first: 10,
-    second: 'Crumbgeek',
-    third: true
-  }
-  function showObject() {
-    document.getElementById('mySpan01').innerHTML = JSON.stringify(myObject, null, 2)
+  let myString = "Crumbgeek"
+
+  function showString() {
+    document.getElementById('mySpan01').innerHTML = myString
   }
 </script>
-<input type=button value="Show Object.values()" onclick="{
-  let values = Object.values(myObject)
-  document.getElementById('mySpan01').innerHTML = values
+
+<input type=button value="Show .length" onclick="{
+  let len = myString.length
+  document.getElementById('mySpan01').innerHTML = 'Length: ' + len
 }">
 <br>
-<input type=button value="Show Object.entries()" onclick="{
-  let entries = Object.entries(myObject)
-  document.getElementById('mySpan01').innerHTML = JSON.stringify(entries)
+
+<input type=button value='Show chars (split)' onclick="{
+  let chars = myString.split('')
+  document.getElementById('mySpan01').innerHTML = chars
 }">
 <br>
-<input type=button value='Add new property "newProp"' onclick="{
-  myObject.newProp = 'hello I am a new property wagwan'
-  showObject()
+
+<input type=button value='Show upper/lower' onclick="{
+  document.getElementById('mySpan01').innerHTML =
+    'Upper: ' + myString.toUpperCase() + '<br>Lower: ' + myString.toLowerCase()
 }">
 <br>
-<input type=button value='Modify "second" property' onclick="{
-  myObject.second = 'geekcrumb'
-  showObject()
+
+<input type=button value='Add new text' onclick="{
+  myString += ' wagwan'
+  showString()
 }">
 <br>
-<input type=button value='Delete "third" property' onclick="{
-  delete myObject.third
-  showObject()
+
+<input type=button value='Replace "geek" with "lord"' onclick="{
+  myString = myString.replace('geek', 'lord')
+  showString()
 }">
 <br>
-<input type=button value='Does "third" exist?' onclick="{
-  let exists = myObject.hasOwnProperty('third')
-  document.getElementById('mySpan01').innerHTML = 'third exists? ' + exists
+
+<input type=button value='Delete first 3 chars' onclick="{
+  myString = myString.slice(3)
+  showString()
+}">
+<br>
+
+<input type=button value='Does "geek" exist?' onclick="{
+  let exists = myString.includes('geek')
+  document.getElementById('mySpan01').innerHTML = 'Contains \"geek\"? ' + exists
 }">
 <br>
