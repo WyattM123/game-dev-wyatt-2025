@@ -1,5 +1,4 @@
 <script>
-// global variables here
 
 function myHitOther(my1, my2) {
 
@@ -19,27 +18,38 @@ function myHitOther(my1, my2) {
         (top1 <= bottom2)) {
         return true;
     }
-    return false; // Explicitly return false if no hit
+    return false;
 }
-
 
 function myCheckHit() {
     if (myHitOther('myImg01', 'myImg02')) {
-        alert('you lose');
+        document.getElementById('myMessage').style.display = 'block';
+        document.getElementById('myMessage').innerHTML = 'you lose';
         document.getElementById('myImg01').style.left = '20px';
-        location = 'index.html'; // go to your next level
     }
 }
-</script>
 
+document.addEventListener('keydown', function(event) {
+    let me = document.getElementById('myImg01');
+    if (event.key === 'd') me.style.left = parseInt(me.style.left) + 10 + 'px';
+    if (event.key === 'a') me.style.left = parseInt(me.style.left) - 10 + 'px';
+    if (event.key === 'w') me.style.top  = parseInt(me.style.top) - 10 + 'px';
+    if (event.key === 's') me.style.top  = parseInt(me.style.top) + 10 + 'px';
+    myCheckHit();
+});
+</script>
 
 <br><br><h2 align=center>t2a21-collision-wyatt.html</h2>
 
 <img id="myImg01" src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" style="position:absolute; left:0px; top:0px; width:50px; height:30px;">
 
-<img id="myImg02" src="bird-or-tennis-ball-v0-dlmy6v3r295d1.webp" style="position:absolute; left:100px; top:0px; width:50px; height:30px;"><br>
+<img id="myImg02" src="bird-or-tennis-ball-v0-dlmy6v3r295d1.webp" style="position:absolute; left:100px; top:0px; width:50px; height:30px;">
+
+<div id="myMessage" style="position:absolute; left:10px; top:60px; padding:5px; border:1px solid black; background:white; display:none;"></div>
+
+<br>
 
 <input type=button value="Move" onclick="{
 document.getElementById('myImg01').style.left = parseInt(document.getElementById('myImg01').style.left) + 10 + 'px';
-    myCheckHit();
-}"><br>
+myCheckHit();
+}">
