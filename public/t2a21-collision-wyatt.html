@@ -22,9 +22,16 @@ function myHitOther(my1, my2) {
 }
 
 function myCheckHit() {
+
     if (myHitOther('myImg01', 'myImg02')) {
         document.getElementById('myMessage').style.display = 'block';
         document.getElementById('myMessage').innerHTML = 'you collided with the other tennisball bird.';
+        document.getElementById('myImg01').style.left = '20px';
+    }
+
+    if (myHitOther('myImg01', 'myImg03')) {
+        document.getElementById('myMessage').style.display = 'block';
+        document.getElementById('myMessage').innerHTML = 'wait... another tennisball bird? wowza.';
         document.getElementById('myImg01').style.left = '20px';
     }
 }
@@ -44,6 +51,8 @@ document.addEventListener('keydown', function(event) {
 <img id="myImg01" src="origin-of-a-meme-serious-question-v0-e7p13ctddkoe1.webp" style="position:absolute; left:0px; top:0px; width:50px; height:30px;">
 
 <img id="myImg02" src="bird-or-tennis-ball-v0-dlmy6v3r295d1.webp" style="position:absolute; left:100px; top:0px; width:50px; height:30px;">
+
+<img id="myImg03" src="bird-or-tennis-ball-v0-dlmy6v3r295d1.webp" style="position:absolute; left:200px; top:50px; width:50px; height:30px;">
 
 <div id="myMessage" style="position:absolute; left:10px; top:60px; padding:5px; border:1px solid black; background:white; display:none;"></div>
 
