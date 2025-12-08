@@ -45,7 +45,13 @@ function myCheckHit(){
 
 }  // end of myCheckHit()
 
-
+document.addEventListener('keydown', function(event) {
+    let me = document.getElementById('myImg01');
+    if (event.key === 'd') me.style.left = parseInt(me.style.left) + 10 + 'px';
+    if (event.key === 'a') me.style.left = parseInt(me.style.left) - 10 + 'px';
+    if (event.key === 'w') me.style.top  = parseInt(me.style.top) - 10 + 'px';
+    if (event.key === 's') me.style.top  = parseInt(me.style.top) + 10 + 'px';
+    myCheckHit();
 </script>
 
 <img id="myImg01" style="position:absolute; width:100px; height:80px; top:0px; left:50px;"  src="myImage01.jpg">
