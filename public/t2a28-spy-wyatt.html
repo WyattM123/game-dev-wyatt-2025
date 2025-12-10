@@ -44,7 +44,6 @@
 
 <hr>
 
-<h2>Letters → Numbers Encoder</h2>
 
 <textarea id="myArea04" rows=4 cols=70>abc xyz</textarea><br>
 
@@ -130,20 +129,17 @@
 
 <hr>
 
-<h2>X Pattern Word Encoder</h2>
 
 <textarea id="myArea07" rows=4 cols=70>logan is cool</textarea><br>
 
-<input type=button value="encode x pattern" onclick="{
+<input type=button value="encode ek pattern" onclick="{
    let words = document.getElementById('myArea07').value.toLowerCase().split(' ')
    let output = []
 
    for (let i = 0; i < words.length; i++){
       let w = words[i]
       if (w.length > 0){
-         let first = w[0]
-         let last = w[w.length - 1]
-         let coded = 'x' + first + 'x' + last + 'x'
+         let coded = w.slice(1) + w[0] + 'ek'
          output.push(coded)
       }
    }
@@ -153,16 +149,15 @@
 
 <textarea id="myArea08" rows=4 cols=70></textarea><br>
 
-<input type=button value="decode x pattern" onclick="{
+<input type=button value="decode ek pattern" onclick="{
    let words = document.getElementById('myArea08').value.split(' ')
    let output = []
 
    for (let i = 0; i < words.length; i++){
       let w = words[i]
-      if (w.length == 5){
-         let first = w[1]
-         let last = w[3]
-         let decoded = first + last   // cannot recover full word
+      if (w.endsWith('ek') && w.length > 2){
+         let core = w.slice(0, -2)
+         let decoded = core[core.length - 1] + core.slice(0, core.length - 1)
          output.push(decoded)
       }
    }
