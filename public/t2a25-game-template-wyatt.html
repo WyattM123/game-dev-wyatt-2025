@@ -2,8 +2,6 @@
 
 <script>
 
-// global variables here
-
 let myGlobalX = 0
 let myClock
 let myScore = 10
@@ -12,7 +10,6 @@ let bulletActive = false
 let bulletTimer = null
 let bulletLifeTimer = null
 
-// zombie health
 var zombie1HP = 2
 var zombie2HP = 2
 
@@ -63,8 +60,8 @@ function resetBullet(){
 
 function checkExitDoor(){
    if (myHitOther('myImg01','myImg04')){
-      document.all.myText01.value = "You reached the exit!"
-      alert("You Win!")
+      document.all.myText01.value = "Made it out... For now"
+      alert("Next level")
       location = "https://www.google.ca"
    }
 }
@@ -74,13 +71,13 @@ function hitZombie(zombieID, hpVarName){
    let rect = z.getBoundingClientRect()
    spawnHitParticle(rect.left + 40, rect.top + 30)
 
-   window[hpVarName] -= 1   // now works because HP is var
+   window[hpVarName] -= 1
 
    if (window[hpVarName] <= 0){
       z.style.display = "none"
-      document.all.myText01.value = zombieID + " defeated!"
+      document.all.myText01.value = zombieID + " shot dead"
    } else {
-      document.all.myText01.value = zombieID + " hit!"
+      document.all.myText01.value = zombieID + " shot"
    }
 }
 
@@ -95,14 +92,12 @@ function fireBullet(){
    let gx = parseInt(g.style.left)
    let gy = parseInt(g.style.top)
 
-   // start bullet at center of player
    b.style.left = gx + 45 + "px"
    b.style.top  = gy + 35 + "px"
    b.style.display = "block"
 
    clearInterval(bulletTimer)
 
-   // bullet life: disappear after 5 seconds
    clearTimeout(bulletLifeTimer)
    bulletLifeTimer = setTimeout(function(){
       resetBullet()
@@ -113,7 +108,6 @@ function fireBullet(){
       let bx = parseInt(b.style.left)
       let by = parseInt(b.style.top)
 
-      // move in last direction
       if (lastDirection == "right") bx += 10
       if (lastDirection == "left")  bx -= 10
       if (lastDirection == "up")    by -= 10
@@ -122,7 +116,6 @@ function fireBullet(){
       b.style.left = bx + "px"
       b.style.top  = by + "px"
 
-      // hit zombies?
       if (document.getElementById('myImg02').style.display != "none"){
          if (myHitOther('myBullet','myImg02')){
             hitZombie("myImg02", "zombie1HP")
@@ -137,13 +130,48 @@ function fireBullet(){
          }
       }
 
-      // off screen?
       if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
          resetBullet()
       }
 
    }, 20)
 
+}
+
+
+
+setInterval(function(){
+    moveZombieTowardPlayer("myImg02", 1.0)
+    moveZombieTowardPlayer("myImg03", 0.8)
+}, 120)
+
+function moveZombieTowardPlayer(zombieID, speed){
+
+    let z = document.getElementById(zombieID)
+    if (z.style.display == "none") return
+
+    let p = document.getElementById("myImg01")
+
+    let zx = parseInt(z.style.left)
+    let zy = parseInt(z.style.top)
+
+    let px = parseInt(p.style.left)
+    let py = parseInt(p.style.top)
+
+    let dx = px - zx
+    let dy = py - zy
+
+    dx += (Math.random() - 0.5) * 40
+    dy += (Math.random() - 0.5) * 40
+
+    let dist = Math.sqrt(dx*dx + dy*dy)
+    if (dist < 5) return
+
+    let stepX = (dx / dist) * speed
+    let stepY = (dy / dist) * speed
+
+    z.style.left = (zx + stepX) + "px"
+    z.style.top  = (zy + stepY) + "px"
 }
 
 </script>
