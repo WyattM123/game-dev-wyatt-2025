@@ -1,20 +1,17 @@
 <script>
 
-let myScore = 10
-let myGun01
-let myGun02
-let myShooting = 1
-
-// NEW: remembers last direction you moved
 let lastDirection = "right"
+let bulletActive = false
+let bulletTimer = null
+let myScore = 10
 
 
 // =======================
-// COLLISION DETECTION
+// COLLISION
 // =======================
-function myHitOther(my1, my2){
-   let A = document.getElementById(my1).getBoundingClientRect()
-   let B = document.getElementById(my2).getBoundingClientRect()
+function hit(a, b){
+   let A = document.getElementById(a).getBoundingClientRect()
+   let B = document.getElementById(b).getBoundingClientRect()
 
    return !(
       A.right < B.left ||
@@ -26,37 +23,71 @@ function myHitOther(my1, my2){
 
 
 // =======================
-// CHECK HIT
+// SHOOTING
 // =======================
-function myCheckHit(){
+function fireBullet(){
 
-   if (myHitOther('myBullet01','myImg02')){
-      document.all.myText01.value = "You shot Zombie1!"
-      clearInterval(myGun01)
-      document.getElementById('myBullet01').style.left = '-200px'
-      myScore += 1
-   }
+   // Only 1 bullet at a time
+   if (bulletActive) return  
+   bulletActive = true
 
-   if (myHitOther('myBullet02','myImg02')){
-      document.all.myText01.value = "You shot Zombie1!"
-      clearInterval(myGun02)
-      document.getElementById('myBullet02').style.left = '-200px'
-      myScore += 1
-   }
+   let b = document.getElementById("myBullet")
+   let g = document.getElementById("myImg01")
 
-   if (myHitOther('myBullet01','myImg03')){
-      document.all.myText01.value = "You shot Zombie2!"
-      clearInterval(myGun01)
-      document.getElementById('myBullet01').style.left = '-200px'
-      myScore += 1
-   }
+   // Spawn bullet at center of player
+   let gx = parseInt(g.style.left)
+   let gy = parseInt(g.style.top)
 
-   if (myHitOther('myBullet02','myImg03')){
-      document.all.myText01.value = "You shot Zombie2!"
-      clearInterval(myGun02)
-      document.getElementById('myBullet02').style.left = '-200px'
-      myScore += 1
-   }
+   b.style.left = (gx + 45) + "px"
+   b.style.top  = (gy + 35) + "px"
+   b.style.display = "block"
+
+   clearInterval(bulletTimer)
+
+   bulletTimer = setInterval(function(){
+
+      let bx = parseInt(b.style.left)
+      let by = parseInt(b.style.top)
+
+      // Move based on last direction
+      if (lastDirection == "right") bx += 10
+      if (lastDirection == "left")  bx -= 10
+      if (lastDirection == "up")    by -= 10
+      if (lastDirection == "down")  by += 10
+
+      b.style.left = bx + "px"
+      b.style.top = by + "px"
+
+      // Check zombie hits
+      if (hit("myBullet","myImg02")){
+         document.all.myText01.value = "You shot Zombie1!"
+         resetBullet()
+      }
+
+      if (hit("myBullet","myImg03")){
+         document.all.myText01.value = "You shot Zombie2!"
+         resetBullet()
+      }
+
+      // Off screen? delete bullet
+      if (bx < -20 || bx > 1200 || by < -20 || by > 800){
+         resetBullet()
+      }
+
+   }, 20)
+}
+
+
+// =======================
+// DELETE BULLET
+// =======================
+function resetBullet(){
+   clearInterval(bulletTimer)
+   let b = document.getElementById("myBullet")
+   b.style.left = "-200px"
+   b.style.top = "-200px"
+   b.style.display = "none"
+   bulletActive = false
 }
 
 
@@ -65,73 +96,30 @@ function myCheckHit(){
 // =======================
 function moveUp(){
    lastDirection = "up"
-   let g = document.getElementById('myImg01')
-   g.style.top = parseInt(g.style.top) - 10 + 'px'
+   let g = document.getElementById("myImg01")
+   g.style.top = parseInt(g.style.top) - 10 + "px"
 }
 
 function moveDown(){
    lastDirection = "down"
-   let g = document.getElementById('myImg01')
-   g.style.top = parseInt(g.style.top) + 10 + 'px'
+   let g = document.getElementById("myImg01")
+   g.style.top = parseInt(g.style.top) + 10 + "px"
 }
 
 function moveLeft(){
    lastDirection = "left"
-   let g = document.getElementById('myImg01')
-   g.style.left = parseInt(g.style.left) - 10 + 'px'
+   let g = document.getElementById("myImg01")
+   g.style.left = parseInt(g.style.left) - 10 + "px"
 }
 
 function moveRight(){
    lastDirection = "right"
-   let g = document.getElementById('myImg01')
-   g.style.left = parseInt(g.style.left) + 10 + 'px'
-}
-
-
-
-// =======================
-// SHOOT – Bullet moves based on last direction walked
-// =======================
-function fireBullet(){
-
-   // alternate bullets (so they don’t freeze)
-   if (myShooting > 2) myShooting = 1
-
-   let bulletID = (myShooting == 1) ? "myBullet01" : "myBullet02"
-   let intervalID = (myShooting == 1) ? "myGun01" : "myGun02"
-
-   myShooting++
-
-   let b = document.getElementById(bulletID)
-   let g = document.getElementById('myImg01')
-
-   // starting position
-   b.style.left = parseInt(g.style.left) + 40 + 'px'
-   b.style.top  = parseInt(g.style.top) + 30 + 'px'
-
-   // clear previous bullet movement
-   clearInterval(window[intervalID])
-
-   // movement logic
-   window[intervalID] = setInterval(function(){
-
-      let x = parseInt(b.style.left)
-      let y = parseInt(b.style.top)
-
-      if (lastDirection == "right") x += 10
-      if (lastDirection == "left")  x -= 10
-      if (lastDirection == "up")    y -= 10
-      if (lastDirection == "down")  y += 10
-
-      b.style.left = x + "px"
-      b.style.top = y + "px"
-
-      myCheckHit()
-
-   }, 20)
+   let g = document.getElementById("myImg01")
+   g.style.left = parseInt(g.style.left) + 10 + "px"
 }
 
 </script>
+
 
 
 <body onkeydown="{
@@ -141,9 +129,9 @@ function fireBullet(){
    if(event.key=='d') moveRight()
 }">
 
+<input id="myText01" type=text size=40><br><br>
 
-<input id="myText01" type=text size=30><br><br>
-
+<!-- MOVE BUTTONS -->
 <button onclick="moveUp()">W</button><br>
 <button onclick="moveLeft()">A</button>
 <button onclick="moveDown()">S</button>
@@ -156,6 +144,7 @@ function fireBullet(){
 <img id="myImg01" src="olddudewitgun.gif"
      style="position:absolute; width:100px; height:80px; left:50px; top:200px;">
 
+
 <!-- ZOMBIES -->
 <img id="myImg02" src="Zombie1.gif"
      style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
@@ -163,9 +152,15 @@ function fireBullet(){
 <img id="myImg03" src="Zombie2.gif"
      style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 
-<!-- BULLETS -->
-<img id="myBullet01" src="Bullet1.gif"
-     style="position:absolute; width:10px; height:10px; left:-200px; top:-200px; z-index:9999;">
 
-<img id="myBullet02" src="Bullet1.gif"
-     style="position:absolute; width:10px; height:10px; left:-200px; top:-200px; z-index:9999;">
+<!-- EXIT DOOR (YOU ASKED FOR IT BACK) -->
+<img id="myImg04" src="Exitdoor.gif"
+     style="position:absolute; width:100px; height:80px; left:500px; top:400px;">
+
+
+<!-- SINGLE BULLET -->
+<img id="myBullet" src="Bullet1.gif"
+     style="position:absolute; width:10px; height:10px; left:-200px; top:-200px; display:none; z-index:9999;">
+
+
+</body>
