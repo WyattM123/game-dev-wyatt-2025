@@ -1,17 +1,19 @@
+<h1>t2a25-game-template-wyatt.html</h1>
+
 <script>
 
+// global variables here
+
+let myGlobalX = 0
+let myClock
+let myScore = 10
 let lastDirection = "right"
 let bulletActive = false
 let bulletTimer = null
-let myScore = 10
 
-
-// =======================
-// COLLISION
-// =======================
-function hit(a, b){
-   let A = document.getElementById(a).getBoundingClientRect()
-   let B = document.getElementById(b).getBoundingClientRect()
+function myHitOther(my1,my2){
+   let A = document.getElementById(my1).getBoundingClientRect()
+   let B = document.getElementById(my2).getBoundingClientRect()
 
    return !(
       A.right < B.left ||
@@ -21,25 +23,36 @@ function hit(a, b){
    )
 }
 
+function resetBullet(){
+   clearInterval(bulletTimer)
+   document.getElementById('myBullet').style.left = "-200px"
+   document.getElementById('myBullet').style.top  = "-200px"
+   document.getElementById('myBullet').style.display = "none"
+   bulletActive = false
+}
 
-// =======================
-// SHOOTING
-// =======================
+function checkExitDoor(){
+   if (myHitOther('myImg01','myImg04')){
+      document.all.myText01.value = "You reached the exit!"
+      alert("You Win!")
+      location = "https://www.google.ca"
+   }
+}
+
 function fireBullet(){
 
-   // Only 1 bullet at a time
-   if (bulletActive) return  
+   if (bulletActive) return
    bulletActive = true
 
-   let b = document.getElementById("myBullet")
-   let g = document.getElementById("myImg01")
+   let b = document.getElementById('myBullet')
+   let g = document.getElementById('myImg01')
 
-   // Spawn bullet at center of player
    let gx = parseInt(g.style.left)
    let gy = parseInt(g.style.top)
 
-   b.style.left = (gx + 45) + "px"
-   b.style.top  = (gy + 35) + "px"
+   // start bullet at center of player
+   b.style.left = gx + 45 + "px"
+   b.style.top  = gy + 35 + "px"
    b.style.display = "block"
 
    clearInterval(bulletTimer)
@@ -49,118 +62,121 @@ function fireBullet(){
       let bx = parseInt(b.style.left)
       let by = parseInt(b.style.top)
 
-      // Move based on last direction
+      // move in last direction
       if (lastDirection == "right") bx += 10
       if (lastDirection == "left")  bx -= 10
       if (lastDirection == "up")    by -= 10
       if (lastDirection == "down")  by += 10
 
       b.style.left = bx + "px"
-      b.style.top = by + "px"
+      b.style.top  = by + "px"
 
-      // Check zombie hits
-      if (hit("myBullet","myImg02")){
-         document.all.myText01.value = "You shot Zombie1!"
+      // hit zombies?
+      if (myHitOther('myBullet','myImg02')){
+         document.all.myText01.value = "You shot Zombie 1!"
          resetBullet()
       }
 
-      if (hit("myBullet","myImg03")){
-         document.all.myText01.value = "You shot Zombie2!"
+      if (myHitOther('myBullet','myImg03')){
+         document.all.myText01.value = "You shot Zombie 2!"
          resetBullet()
       }
 
-      // Off screen? delete bullet
-      if (bx < -20 || bx > 1200 || by < -20 || by > 800){
+      // off screen?
+      if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
          resetBullet()
       }
 
    }, 20)
-}
 
-
-// =======================
-// DELETE BULLET
-// =======================
-function resetBullet(){
-   clearInterval(bulletTimer)
-   let b = document.getElementById("myBullet")
-   b.style.left = "-200px"
-   b.style.top = "-200px"
-   b.style.display = "none"
-   bulletActive = false
-}
-
-
-// =======================
-// MOVEMENT
-// =======================
-function moveUp(){
-   lastDirection = "up"
-   let g = document.getElementById("myImg01")
-   g.style.top = parseInt(g.style.top) - 10 + "px"
-}
-
-function moveDown(){
-   lastDirection = "down"
-   let g = document.getElementById("myImg01")
-   g.style.top = parseInt(g.style.top) + 10 + "px"
-}
-
-function moveLeft(){
-   lastDirection = "left"
-   let g = document.getElementById("myImg01")
-   g.style.left = parseInt(g.style.left) - 10 + "px"
-}
-
-function moveRight(){
-   lastDirection = "right"
-   let g = document.getElementById("myImg01")
-   g.style.left = parseInt(g.style.left) + 10 + "px"
 }
 
 </script>
 
 
 
-<body onkeydown="{
-   if(event.key=='w') moveUp()
-   if(event.key=='s') moveDown()
-   if(event.key=='a') moveLeft()
-   if(event.key=='d') moveRight()
+
+<body id="myBody" style="background-repeat:repeat; background-size: 80%" background="myBackground01.jpg"
+
+onkeydown="{
+
+   document.all.myText01.value = event.key
+
+   if (event.key == 'd') { 
+     lastDirection = 'right'
+     document.getElementById('myImg01').style.left =
+         parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
+   }   
+
+   if (event.key == 'a') { 
+     lastDirection = 'left'
+     document.getElementById('myImg01').style.left =
+         parseInt(document.getElementById('myImg01').style.left) - 10 + 'px'
+   }   
+
+   if (event.key == 's') {  
+     lastDirection = 'down'
+     document.getElementById('myImg01').style.top =
+         parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
+   }  
+
+   if (event.key == 'w') {  
+     lastDirection = 'up'
+     document.getElementById('myImg01').style.top =
+         parseInt(document.getElementById('myImg01').style.top) - 10 + 'px'
+   }  
+
+   checkExitDoor()
+
+}">
+<br>
+
+<input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
+
+<input type=button value="Auto Background Left" onclick="{
+  clearInterval(myClock)
+  let myTemp = '100px 0px'
+  myClock = setInterval(function(){
+      myGlobalX -= 5
+      myTemp =  myGlobalX + 'px 0px'
+      document.getElementById('myBody').style.backgroundPosition = myTemp
+  }, 100)
 }">
 
-<input id="myText01" type=text size=40><br><br>
 
-<!-- MOVE BUTTONS -->
-<button onclick="moveUp()">W</button><br>
-<button onclick="moveLeft()">A</button>
-<button onclick="moveDown()">S</button>
-<button onclick="moveRight()">D</button><br><br>
+<input type=button value="Right" onclick="{
+   lastDirection = 'right'
+   document.getElementById('myImg01').style.left =
+       parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
+   checkExitDoor()
+}">
 
-<button onclick="fireBullet()">SHOOT</button><br><br>
+<input type=button value="Down" onclick="{
+   lastDirection = 'down'
+   document.getElementById('myImg01').style.top =
+       parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
+   checkExitDoor()
+}">
 
+<input type=button value="shoot" onclick="{
+   fireBullet()
+}"><br><br>
 
-<!-- PLAYER -->
 <img id="myImg01" src="olddudewitgun.gif"
-     style="position:absolute; width:100px; height:80px; left:50px; top:200px;">
+     style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
 
-
-<!-- ZOMBIES -->
 <img id="myImg02" src="Zombie1.gif"
      style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
 
 <img id="myImg03" src="Zombie2.gif"
      style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 
-
-<!-- EXIT DOOR (YOU ASKED FOR IT BACK) -->
 <img id="myImg04" src="Exitdoor.gif"
      style="position:absolute; width:100px; height:80px; left:500px; top:400px;">
 
-
-<!-- SINGLE BULLET -->
-<img id="myBullet" src="Bullet1.gif"
-     style="position:absolute; width:10px; height:10px; left:-200px; top:-200px; display:none; z-index:9999;">
-
+<div id="myBullet"
+style="position:absolute; width:12px; height:12px; background:yellow;
+       left:-200px; top:-200px; display:none; z-index:9999;">
+</div>
 
 </body>
