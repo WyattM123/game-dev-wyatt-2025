@@ -13,8 +13,8 @@ let bulletTimer = null
 let bulletLifeTimer = null
 
 // zombie health
-let zombie1HP = 2
-let zombie2HP = 2
+var zombie1HP = 2
+var zombie2HP = 2
 
 function myHitOther(my1,my2){
    let A = document.getElementById(my1).getBoundingClientRect()
@@ -74,7 +74,7 @@ function hitZombie(zombieID, hpVarName){
    let rect = z.getBoundingClientRect()
    spawnHitParticle(rect.left + 40, rect.top + 30)
 
-   window[hpVarName] -= 1
+   window[hpVarName] -= 1   // now works because HP is var
 
    if (window[hpVarName] <= 0){
       z.style.display = "none"
