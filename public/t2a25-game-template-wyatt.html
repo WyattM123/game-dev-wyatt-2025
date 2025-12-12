@@ -10,6 +10,11 @@ let myScore = 10
 let lastDirection = "right"
 let bulletActive = false
 let bulletTimer = null
+let bulletLifeTimer = null
+
+// zombie health
+let zombie1HP = 2
+let zombie2HP = 2
 
 function myHitOther(my1,my2){
    let A = document.getElementById(my1).getBoundingClientRect()
@@ -23,8 +28,33 @@ function myHitOther(my1,my2){
    )
 }
 
+function spawnHitParticle(x,y){
+   let p = document.createElement("div")
+   p.style.position = "absolute"
+   p.style.left = x + "px"
+   p.style.top  = y + "px"
+   p.style.width = "20px"
+   p.style.height = "20px"
+   p.style.background = "red"
+   p.style.borderRadius = "50%"
+   p.style.opacity = "1"
+   p.style.zIndex = 9999
+   p.style.transition = "opacity 0.4s ease-out, transform 0.4s ease-out"
+   document.body.appendChild(p)
+
+   setTimeout(function(){
+      p.style.opacity = "0"
+      p.style.transform = "scale(2)"
+   }, 10)
+
+   setTimeout(function(){
+      p.remove()
+   }, 450)
+}
+
 function resetBullet(){
    clearInterval(bulletTimer)
+   clearTimeout(bulletLifeTimer)
    document.getElementById('myBullet').style.left = "-200px"
    document.getElementById('myBullet').style.top  = "-200px"
    document.getElementById('myBullet').style.display = "none"
@@ -36,6 +66,21 @@ function checkExitDoor(){
       document.all.myText01.value = "You reached the exit!"
       alert("You Win!")
       location = "https://www.google.ca"
+   }
+}
+
+function hitZombie(zombieID, hpVarName){
+   let z = document.getElementById(zombieID)
+   let rect = z.getBoundingClientRect()
+   spawnHitParticle(rect.left + 40, rect.top + 30)
+
+   window[hpVarName] -= 1
+
+   if (window[hpVarName] <= 0){
+      z.style.display = "none"
+      document.all.myText01.value = zombieID + " defeated!"
+   } else {
+      document.all.myText01.value = zombieID + " hit!"
    }
 }
 
@@ -57,6 +102,12 @@ function fireBullet(){
 
    clearInterval(bulletTimer)
 
+   // bullet life: disappear after 5 seconds
+   clearTimeout(bulletLifeTimer)
+   bulletLifeTimer = setTimeout(function(){
+      resetBullet()
+   }, 5000)
+
    bulletTimer = setInterval(function(){
 
       let bx = parseInt(b.style.left)
@@ -72,14 +123,18 @@ function fireBullet(){
       b.style.top  = by + "px"
 
       // hit zombies?
-      if (myHitOther('myBullet','myImg02')){
-         document.all.myText01.value = "You shot Zombie 1!"
-         resetBullet()
+      if (document.getElementById('myImg02').style.display != "none"){
+         if (myHitOther('myBullet','myImg02')){
+            hitZombie("myImg02", "zombie1HP")
+            resetBullet()
+         }
       }
 
-      if (myHitOther('myBullet','myImg03')){
-         document.all.myText01.value = "You shot Zombie 2!"
-         resetBullet()
+      if (document.getElementById('myImg03').style.display != "none"){
+         if (myHitOther('myBullet','myImg03')){
+            hitZombie("myImg03", "zombie2HP")
+            resetBullet()
+         }
       }
 
       // off screen?
