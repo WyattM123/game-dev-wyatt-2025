@@ -139,7 +139,7 @@ function fireBullet(){
 }
 
 setInterval(function(){
-    moveZombieTowardPlayer("myImg02", 0.8)
+    moveZombieTowardPlayer("myImg02", 6)
     moveZombieTowardPlayer("myImg03", 0.5)
 }, 120)
 
@@ -150,21 +150,18 @@ function moveZombieTowardPlayer(zombieID, speed){
 
     let p = document.getElementById("myImg01")
 
-    // Use parseFloat instead of parseInt to allow fractional movement
     let zx = parseFloat(z.style.left)
     let zy = parseFloat(z.style.top)
 
     let px = parseFloat(p.style.left)
     let py = parseFloat(p.style.top)
 
-    // Direction toward player
     let dx = px - zx
     let dy = py - zy
 
     let dist = Math.sqrt(dx*dx + dy*dy)
     if (dist < 1) return // close enough, stop moving
 
-    // Normalize direction to maintain consistent speed
     dx /= dist
     dy /= dist
 
