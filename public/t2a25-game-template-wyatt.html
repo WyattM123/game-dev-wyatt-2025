@@ -138,12 +138,11 @@ function fireBullet(){
 
 }
 
-
-
 setInterval(function(){
     moveZombieTowardPlayer("myImg02", 0.8)
     moveZombieTowardPlayer("myImg03", 0.5)
 }, 120)
+
 
 function moveZombieTowardPlayer(zombieID, speed){
 
@@ -158,26 +157,25 @@ function moveZombieTowardPlayer(zombieID, speed){
     let px = parseInt(p.style.left)
     let py = parseInt(p.style.top)
 
+    // BASE direction toward player
     let dx = px - zx
     let dy = py - zy
-
-    dx += (Math.random() - 0.5) * 40
-    dy += (Math.random() - 0.5) * 80
 
     let dist = Math.sqrt(dx*dx + dy*dy)
     if (dist < 5) return
 
-    let stepX = (dx / dist) * speed
-    let stepY = (dy / dist) * speed
+    // Normalize direction
+    dx /= dist
+    dy /= dist
 
-    z.style.left = (zx + stepX) + "px"
-    z.style.top  = (zy + stepY) + "px"
+    dx += (Math.random() - 0.5) * 0.3
+    dy += (Math.random() - 0.5) * 0.3
+
+    z.style.left = (zx + dx * speed) + "px"
+    z.style.top  = (zy + dy * speed) + "px"
 }
 
 </script>
-
-
-
 
 <body id="myBody" style="background-repeat:repeat; background-size: 80%" background="myBackground01.jpg"
 
@@ -225,7 +223,6 @@ onkeydown="{
       document.getElementById('myBody').style.backgroundPosition = myTemp
   }, 100)
 }">
-
 
 <input type=button value="Right" onclick="{
    lastDirection = 'right'
