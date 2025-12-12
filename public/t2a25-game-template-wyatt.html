@@ -164,16 +164,23 @@ function moveZombieTowardPlayer(zombieID, speed){
     let dist = Math.sqrt(dx*dx + dy*dy)
     if (dist < 5) return
 
+    // If dy is too tiny, force a vertical direction (prevents being "stuck")
+    if (Math.abs(dy) < 1) {
+        dy = (Math.random() > 0.5 ? 1 : -1) * 5
+    }
+
     // Normalize direction
     dx /= dist
     dy /= dist
 
+    // Add tiny randomness
     dx += (Math.random() - 0.5) * 0.3
     dy += (Math.random() - 0.5) * 0.3
 
     z.style.left = (zx + dx * speed) + "px"
     z.style.top  = (zy + dy * speed) + "px"
 }
+
 
 </script>
 
