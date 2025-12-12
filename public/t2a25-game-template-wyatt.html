@@ -150,11 +150,12 @@ function moveZombieTowardPlayer(zombieID, speed){
 
     let p = document.getElementById("myImg01")
 
-    let zx = parseInt(z.style.left)
-    let zy = parseInt(z.style.top)
+    // Use parseFloat instead of parseInt to allow fractional movement
+    let zx = parseFloat(z.style.left)
+    let zy = parseFloat(z.style.top)
 
-    let px = parseInt(p.style.left)
-    let py = parseInt(p.style.top)
+    let px = parseFloat(p.style.left)
+    let py = parseFloat(p.style.top)
 
     // Direction toward player
     let dx = px - zx
