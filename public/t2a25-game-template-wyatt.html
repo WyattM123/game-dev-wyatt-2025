@@ -145,7 +145,6 @@ setInterval(function(){
 
 
 function moveZombieTowardPlayer(zombieID, speed){
-
     let z = document.getElementById(zombieID)
     if (z.style.display == "none") return
 
@@ -157,30 +156,20 @@ function moveZombieTowardPlayer(zombieID, speed){
     let px = parseInt(p.style.left)
     let py = parseInt(p.style.top)
 
-    // BASE direction toward player
+    // Direction toward player
     let dx = px - zx
     let dy = py - zy
 
     let dist = Math.sqrt(dx*dx + dy*dy)
-    if (dist < 5) return
+    if (dist < 1) return // close enough, stop moving
 
-    // If dy is too tiny, force a vertical direction (prevents being "stuck")
-    if (Math.abs(dy) < 1) {
-        dy = (Math.random() > 0.5 ? 1 : -1) * 5
-    }
-
-    // Normalize direction
+    // Normalize direction to maintain consistent speed
     dx /= dist
     dy /= dist
-
-    // Add tiny randomness
-    dx += (Math.random() - 0.5) * 0.3
-    dy += (Math.random() - 0.5) * 0.3
 
     z.style.left = (zx + dx * speed) + "px"
     z.style.top  = (zy + dy * speed) + "px"
 }
-
 
 </script>
 
