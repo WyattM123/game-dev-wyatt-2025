@@ -13,6 +13,35 @@ let bulletLifeTimer = null
 var zombie1HP = 2
 var zombie2HP = 2
 
+/* PLAYER HEALTH */
+let playerHP = 10
+let canTakeDamage = true
+
+function updateHealthDisplay(){
+   document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
+}
+
+function playerTakeDamage(){
+   if (!canTakeDamage) return
+
+   playerHP -= 1
+   updateHealthDisplay()
+   canTakeDamage = false
+
+   // hit particle on player
+   let r = document.getElementById("myImg01").getBoundingClientRect()
+   spawnHitParticle(r.left + 40, r.top + 30)
+
+   setTimeout(function(){
+      canTakeDamage = true
+   }, 1000)
+
+   if (playerHP <= 0){
+      alert("Game Over")
+      location.reload()
+   }
+}
+
 function myHitOther(my1,my2){
    let A = document.getElementById(my1).getBoundingClientRect()
    let B = document.getElementById(my2).getBoundingClientRect()
@@ -96,8 +125,6 @@ function fireBullet(){
    b.style.top  = gy + 35 + "px"
    b.style.display = "block"
 
-   clearInterval(bulletTimer)
-   clearTimeout(bulletLifeTimer)
    bulletLifeTimer = setTimeout(function(){
       resetBullet()
    }, 5000)
@@ -134,12 +161,19 @@ function fireBullet(){
       }
 
    }, 20)
-
 }
 
 setInterval(function(){
     moveZombieTowardPlayer("myImg02", 2)
     moveZombieTowardPlayer("myImg03", 2.5)
+
+    if (document.getElementById('myImg02').style.display != "none"){
+       if (myHitOther('myImg01','myImg02')) playerTakeDamage()
+    }
+    if (document.getElementById('myImg03').style.display != "none"){
+       if (myHitOther('myImg01','myImg03')) playerTakeDamage()
+    }
+
 }, 120)
 
 function moveZombieTowardPlayer(zombieID, speed){
@@ -170,99 +204,51 @@ function moveZombieTowardPlayer(zombieID, speed){
 </script>
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background1.gif"
+onload="updateHealthDisplay()"
 
 onkeydown="{
-
-   document.all.myText01.value = event.key
-
-   if (event.key == 'd') { 
-     lastDirection = 'right'
-     document.getElementById('myImg01').style.left =
-         parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
-   }   
-
-   if (event.key == 'a') { 
-     lastDirection = 'left'
-     document.getElementById('myImg01').style.left =
-         parseInt(document.getElementById('myImg01').style.left) - 10 + 'px'
-   }   
-
-   if (event.key == 's') {  
-     lastDirection = 'down'
-     document.getElementById('myImg01').style.top =
-         parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
-   }  
-
-   if (event.key == 'w') {  
-     lastDirection = 'up'
-     document.getElementById('myImg01').style.top =
-         parseInt(document.getElementById('myImg01').style.top) - 10 + 'px'
-   }  
-
+   if (event.key == 'd') { lastDirection='right'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
+   if (event.key == 'a') { lastDirection='left';  myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
+   if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
+   if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
    checkExitDoor()
-
 }">
 <br>
+
+<div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
 
 <input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
 
 <input type=button value="Auto Background Left" onclick="{
   clearInterval(myClock)
-  let myTemp = '100px 0px'
   myClock = setInterval(function(){
       myGlobalX -= 5
-      myTemp =  myGlobalX + 'px 0px'
-      document.getElementById('myBody').style.backgroundPosition = myTemp
+      myBody.style.backgroundPosition = myGlobalX + 'px 0px'
   }, 100)
 }">
 
-<input type=button value="W" onclick="{
-   lastDirection = 'up'
-   document.getElementById('myImg01').style.top =
-       parseInt(document.getElementById('myImg01').style.top) - 10 + 'px'
-   checkExitDoor()
-}">
+<input type=button value="W" onclick="{ lastDirection='up'; myImg01.style.top=parseInt(myImg01.style.top)-10+'px'; checkExitDoor() }">
+<input type=button value="A" onclick="{ lastDirection='left'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px'; checkExitDoor() }">
+<input type=button value="S" onclick="{ lastDirection='down'; myImg01.style.top=parseInt(myImg01.style.top)+10+'px'; checkExitDoor() }">
+<input type=button value="D" onclick="{ lastDirection='right'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px'; checkExitDoor() }">
 
-<input type=button value="A" onclick="{
-   lastDirection = 'left'
-   document.getElementById('myImg01').style.left =
-       parseInt(document.getElementById('myImg01').style.left) - 10 + 'px'
-   checkExitDoor()
-}">
-
-<input type=button value="S" onclick="{
-   lastDirection = 'down'
-   document.getElementById('myImg01').style.top =
-       parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
-   checkExitDoor()
-}">
-
-<input type=button value="D" onclick="{
-   lastDirection = 'right'
-   document.getElementById('myImg01').style.left =
-       parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
-   checkExitDoor()
-}">
-
-<input type=button value="shoot" onclick="{
-   fireBullet()
-}"><br><br>
+<input type=button value="shoot" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif"
-     style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
+style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
 
 <img id="myImg02" src="Zombie1.gif"
-     style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
+style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
 
 <img id="myImg03" src="Zombie2.gif"
-     style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
+style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 
 <img id="myImg04" src="Exitdoor.gif"
-     style="position:absolute; width:100px; height:80px; left:500px; top:400px;">
+style="position:absolute; width:100px; height:80px; left:500px; top:400px;">
 
 <div id="myBullet"
 style="position:absolute; width:12px; height:12px; background:yellow;
-       left:-200px; top:-200px; display:none; z-index:9999;">
+left:-200px; top:-200px; display:none; z-index:9999;">
 </div>
 
 </body>
