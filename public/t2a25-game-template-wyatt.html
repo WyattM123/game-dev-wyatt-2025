@@ -4,7 +4,6 @@
 
 let myGlobalX = 0
 let myClock
-let myScore = 10
 let lastDirection = "right"
 let bulletActive = false
 let bulletTimer = null
@@ -12,40 +11,6 @@ let bulletLifeTimer = null
 
 var zombie1HP = 2
 var zombie2HP = 2
-
-let playerHP = 10
-let canTakeDamage = true
-
-let ammo = 12
-let maxAmmo = 12
-
-function updateHealthDisplay(){
-   document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
-}
-
-function updateAmmoDisplay(){
-   document.getElementById("ammoDisplay").innerHTML = "Ammo: " + ammo + " / " + maxAmmo
-}
-
-function playerTakeDamage(){
-   if (!canTakeDamage) return
-
-   playerHP -= 1
-   updateHealthDisplay()
-   canTakeDamage = false
-
-   let r = document.getElementById("myImg01").getBoundingClientRect()
-   spawnHitParticle(r.left + 40, r.top + 30)
-
-   setTimeout(function(){
-      canTakeDamage = true
-   }, 1000)
-
-   if (playerHP <= 0){
-      alert("Game Over")
-      location.reload()
-   }
-}
 
 function myHitOther(my1,my2){
    let A = document.getElementById(my1).getBoundingClientRect()
@@ -119,14 +84,6 @@ function fireBullet(){
 
    if (bulletActive) return
 
-   if (ammo <= 0){
-      document.all.myText01.value = "Out of ammo!"
-      return
-   }
-
-   ammo -= 1
-   updateAmmoDisplay()
-
    bulletActive = true
 
    let b = document.getElementById('myBullet')
@@ -180,14 +137,6 @@ function fireBullet(){
 setInterval(function(){
     moveZombieTowardPlayer("myImg02", 2)
     moveZombieTowardPlayer("myImg03", 2.5)
-
-    if (document.getElementById('myImg02').style.display != "none"){
-       if (myHitOther('myImg01','myImg02')) playerTakeDamage()
-    }
-    if (document.getElementById('myImg03').style.display != "none"){
-       if (myHitOther('myImg01','myImg03')) playerTakeDamage()
-    }
-
 }, 120)
 
 function moveZombieTowardPlayer(zombieID, speed){
@@ -218,7 +167,6 @@ function moveZombieTowardPlayer(zombieID, speed){
 </script>
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background1.gif"
-onload="updateHealthDisplay(); updateAmmoDisplay()"
 
 onkeydown="{
    if (event.key == 'd') { lastDirection='right'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
@@ -228,9 +176,6 @@ onkeydown="{
    checkExitDoor()
 }">
 <br>
-
-<div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
-<div id="ammoDisplay" style="font-size:24px; font-weight:bold; color:orange;"></div>
 
 <input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
 
