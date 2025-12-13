@@ -97,7 +97,6 @@ function fireBullet(){
    b.style.display = "block"
 
    clearInterval(bulletTimer)
-
    clearTimeout(bulletLifeTimer)
    bulletLifeTimer = setTimeout(function(){
       resetBullet()
@@ -143,7 +142,6 @@ setInterval(function(){
     moveZombieTowardPlayer("myImg03", 2.5)
 }, 120)
 
-
 function moveZombieTowardPlayer(zombieID, speed){
     let z = document.getElementById(zombieID)
     if (z.style.display == "none") return
@@ -160,7 +158,7 @@ function moveZombieTowardPlayer(zombieID, speed){
     let dy = py - zy
 
     let dist = Math.sqrt(dx*dx + dy*dy)
-    if (dist < 1) return // close enough, stop moving
+    if (dist < 1) return
 
     dx /= dist
     dy /= dist
@@ -218,17 +216,31 @@ onkeydown="{
   }, 100)
 }">
 
-<input type=button value="Right" onclick="{
-   lastDirection = 'right'
-   document.getElementById('myImg01').style.left =
-       parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
+<input type=button value="W" onclick="{
+   lastDirection = 'up'
+   document.getElementById('myImg01').style.top =
+       parseInt(document.getElementById('myImg01').style.top) - 10 + 'px'
    checkExitDoor()
 }">
 
-<input type=button value="Down" onclick="{
+<input type=button value="A" onclick="{
+   lastDirection = 'left'
+   document.getElementById('myImg01').style.left =
+       parseInt(document.getElementById('myImg01').style.left) - 10 + 'px'
+   checkExitDoor()
+}">
+
+<input type=button value="S" onclick="{
    lastDirection = 'down'
    document.getElementById('myImg01').style.top =
        parseInt(document.getElementById('myImg01').style.top) + 10 + 'px'
+   checkExitDoor()
+}">
+
+<input type=button value="D" onclick="{
+   lastDirection = 'right'
+   document.getElementById('myImg01').style.left =
+       parseInt(document.getElementById('myImg01').style.left) + 10 + 'px'
    checkExitDoor()
 }">
 
