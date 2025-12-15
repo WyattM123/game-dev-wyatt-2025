@@ -205,8 +205,8 @@ function checkAmmoPickup() {
 }
 
 setInterval(function(){
-    moveZombieTowardPlayer("myImg02", 2)
-    moveZombieTowardPlayer("myImg03", 2.5)
+    moveZombieTowardPlayer("myImg02", 3.5)
+    moveZombieTowardPlayer("myImg03", 4)
 
     if (document.getElementById('myImg02').style.display != "none"){
        if (myHitOther('myImg01','myImg02')) playerTakeDamage()
