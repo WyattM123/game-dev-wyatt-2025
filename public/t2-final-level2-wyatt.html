@@ -13,13 +13,11 @@ let bulletLifeTimer = null
 var zombie1HP = 2
 var zombie2HP = 2
 
-/* PLAYER HEALTH */
 let playerHP = 10
 let canTakeDamage = true
 
-/* AMMO SYSTEM */
 let ammo = 12
-let maxAmmo = 12
+let maxAmmo = 24
 
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
@@ -179,7 +177,6 @@ function fireBullet(){
    }, 20)
 }
 
-/* RANDOMIZE ZOMBIES ON LOAD */
 function randomizeZombiePositions() {
     let minX = 200, maxX = 800
     let minY = 100, maxY = 400
@@ -194,7 +191,6 @@ function randomizeZombiePositions() {
     z2.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
 }
 
-/* CHECK AMMO PICKUP */
 function checkAmmoPickup() {
     let ammoElem = document.getElementById("myImg05")
     if (ammoElem.style.display === "none") return
