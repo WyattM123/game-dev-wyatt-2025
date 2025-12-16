@@ -7,12 +7,9 @@ let myClock
 let myScore = 10
 let lastDirection = "right"
 
-let bulletActive = false
-let bulletTimer = null
-let bulletDX = 0
-let bulletDY = 0
 let canShoot = true
 let shootCooldown = 400
+let bullets = [] // store active bullets
 
 var zombie1HP = 2
 var zombie2HP = 2
@@ -52,10 +49,9 @@ function playerTakeDamage(){
    }
 }
 
-function myHitOther(my1,my2){
-   let A = document.getElementById(my1).getBoundingClientRect()
-   let B = document.getElementById(my2).getBoundingClientRect()
-
+function myHitOther(el1, el2){
+   let A = el1.getBoundingClientRect()
+   let B = el2.getBoundingClientRect()
    return !(
       A.right < B.left ||
       A.left > B.right ||
@@ -88,17 +84,8 @@ function spawnHitParticle(x,y){
    }, 450)
 }
 
-function resetBullet(){
-   clearInterval(bulletTimer)
-   bulletTimer = null
-   document.getElementById('myBullet').style.left = "-200px"
-   document.getElementById('myBullet').style.top  = "-200px"
-   document.getElementById('myBullet').style.display = "none"
-   bulletActive = false
-}
-
 function checkExitDoor(){
-   if (myHitOther('myImg01','myImg04')){
+   if (myHitOther(document.getElementById('myImg01'),document.getElementById('myImg04'))){
       document.all.myText01.value = "Made it out... For now"
       alert("Next level")
       location = "https://www.google.ca"
@@ -120,72 +107,70 @@ function hitZombie(zombieID, hpVarName){
    }
 }
 
-function fireBullet(){
+function fireBullet() {
+    if (!canShoot || ammo <= 0) return;
 
-   clearInterval(bulletTimer)   // ✅ prevents speed stacking
+    ammo -= 1;
+    updateAmmoDisplay();
 
-   if (!canShoot || ammo <= 0) return
+    canShoot = false;
+    setTimeout(() => canShoot = true, shootCooldown);
 
-   ammo -= 1
-   updateAmmoDisplay()
+    let b = document.createElement("div");
+    b.style.position = "absolute";
+    b.style.width = "12px";
+    b.style.height = "12px";
+    b.style.background = "yellow";
+    b.style.zIndex = 9999;
 
-   canShoot = false
-   setTimeout(() => canShoot = true, shootCooldown)
+    let g = document.getElementById('myImg01');
+    let gx = parseInt(g.style.left)
+    let gy = parseInt(g.style.top)
 
-   bulletActive = true
+    b.style.left = gx + 45 + "px";
+    b.style.top  = gy + 35 + "px";
 
-   let b = document.getElementById('myBullet')
-   let g = document.getElementById('myImg01')
+    document.body.appendChild(b);
 
-   let gx = parseInt(g.style.left)
-   let gy = parseInt(g.style.top)
+    let dx = 0, dy = 0;
+    if (lastDirection == "right") dx = 10;
+    if (lastDirection == "left")  dx = -10;
+    if (lastDirection == "up")    dy = -10;
+    if (lastDirection == "down")  dy = 10;
 
-   b.style.left = gx + 45 + "px"
-   b.style.top  = gy + 35 + "px"
-   b.style.display = "block"
+    let bulletObj = {el: b, dx: dx, dy: dy, interval: null};
 
-   // 🔒 lock direction once
-   bulletDX = 0
-   bulletDY = 0
-   if (lastDirection == "right") bulletDX = 10
-   if (lastDirection == "left")  bulletDX = -10
-   if (lastDirection == "up")    bulletDY = -10
-   if (lastDirection == "down")  bulletDY = 10
+    bulletObj.interval = setInterval(() => {
+        let bx = parseInt(b.style.left) + bulletObj.dx;
+        let by = parseInt(b.style.top) + bulletObj.dy;
+        b.style.left = bx + "px";
+        b.style.top  = by + "px";
 
-   bulletTimer = setInterval(function(){
+        if (document.getElementById('myImg02').style.display != "none" && myHitOther(b, document.getElementById('myImg02'))) {
+            hitZombie("myImg02", "zombie1HP");
+            removeBullet(bulletObj);
+        }
+        if (document.getElementById('myImg03').style.display != "none" && myHitOther(b, document.getElementById('myImg03'))) {
+            hitZombie("myImg03", "zombie2HP");
+            removeBullet(bulletObj);
+        }
+        if (document.getElementById('myImg06').style.display != "none" && myHitOther(b, document.getElementById('myImg06'))) {
+            hitZombie("myImg06", "zombie3HP");
+            removeBullet(bulletObj);
+        }
 
-      let bx = parseInt(b.style.left)
-      let by = parseInt(b.style.top)
+        if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
+            removeBullet(bulletObj);
+        }
+    }, 20);
 
-      bx += bulletDX
-      by += bulletDY
+    bullets.push(bulletObj);
+}
 
-      b.style.left = bx + "px"
-      b.style.top  = by + "px"
-
-      if (document.getElementById('myImg02').style.display != "none" &&
-          myHitOther('myBullet','myImg02')){
-         hitZombie("myImg02", "zombie1HP")
-         resetBullet()
-      }
-
-      if (document.getElementById('myImg03').style.display != "none" &&
-          myHitOther('myBullet','myImg03')){
-         hitZombie("myImg03", "zombie2HP")
-         resetBullet()
-      }
-
-      if (document.getElementById('myImg06').style.display != "none" &&
-          myHitOther('myBullet','myImg06')){
-         hitZombie("myImg06", "zombie3HP")
-         resetBullet()
-      }
-
-      if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
-         resetBullet()
-      }
-
-   }, 20)
+function removeBullet(bulletObj) {
+    clearInterval(bulletObj.interval);
+    bulletObj.el.remove();
+    bullets = bullets.filter(b => b !== bulletObj);
 }
 
 function randomizeZombiePositions(){
@@ -201,10 +186,11 @@ function randomizeZombiePositions(){
 
 function checkAmmoPickup(){
    let a = document.getElementById("myImg05")
-   if (a.style.display !== "none" && myHitOther("myImg01","myImg05")){
+   if (a.style.display !== "none" && myHitOther(document.getElementById("myImg01"),a)){
       ammo = Math.min(ammo + 6, maxAmmo)
       updateAmmoDisplay()
       a.style.display = "none"
+      document.all.myText01.value = "Picked up ammo!"
    }
 }
 
@@ -213,9 +199,9 @@ setInterval(function(){
    moveZombieTowardPlayer("myImg03", 2.5)
    moveZombieTowardPlayer("myImg06", 6.5)
 
-   if (myHitOther("myImg01","myImg02")) playerTakeDamage()
-   if (myHitOther("myImg01","myImg03")) playerTakeDamage()
-   if (myHitOther("myImg01","myImg06")) playerTakeDamage()
+   if (document.getElementById('myImg02').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg02'))) playerTakeDamage()
+   if (document.getElementById('myImg03').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg03'))) playerTakeDamage()
+   if (document.getElementById('myImg06').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg06'))) playerTakeDamage()
 
    checkAmmoPickup()
 }, 120)
