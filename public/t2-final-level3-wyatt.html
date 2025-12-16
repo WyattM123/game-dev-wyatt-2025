@@ -6,9 +6,13 @@ let myGlobalX = 0
 let myClock
 let myScore = 10
 let lastDirection = "right"
+
 let bulletActive = false
 let bulletTimer = null
-let bulletLifeTimer = null
+let bulletDX = 0
+let bulletDY = 0
+let canShoot = true
+let shootCooldown = 400
 
 var zombie1HP = 2
 var zombie2HP = 2
@@ -86,7 +90,6 @@ function spawnHitParticle(x,y){
 
 function resetBullet(){
    clearInterval(bulletTimer)
-   clearTimeout(bulletLifeTimer)
    document.getElementById('myBullet').style.left = "-200px"
    document.getElementById('myBullet').style.top  = "-200px"
    document.getElementById('myBullet').style.display = "none"
@@ -118,15 +121,13 @@ function hitZombie(zombieID, hpVarName){
 
 function fireBullet(){
 
-   if (bulletActive) return
-
-   if (ammo <= 0){
-      document.all.myText01.value = "Out of ammo!"
-      return
-   }
+   if (!canShoot || ammo <= 0) return
 
    ammo -= 1
    updateAmmoDisplay()
+
+   canShoot = false
+   setTimeout(() => canShoot = true, shootCooldown)
 
    bulletActive = true
 
@@ -140,41 +141,41 @@ function fireBullet(){
    b.style.top  = gy + 35 + "px"
    b.style.display = "block"
 
-   bulletLifeTimer = setTimeout(function(){
-      resetBullet()
-   }, 5000)
+   // 🔒 Lock direction
+   bulletDX = 0
+   bulletDY = 0
+   if (lastDirection == "right") bulletDX = 10
+   if (lastDirection == "left")  bulletDX = -10
+   if (lastDirection == "up")    bulletDY = -10
+   if (lastDirection == "down")  bulletDY = 10
 
    bulletTimer = setInterval(function(){
 
       let bx = parseInt(b.style.left)
       let by = parseInt(b.style.top)
 
-      if (lastDirection == "right") bx += 10
-      if (lastDirection == "left")  bx -= 10
-      if (lastDirection == "up")    by -= 10
-      if (lastDirection == "down")  by += 10
+      bx += bulletDX
+      by += bulletDY
 
       b.style.left = bx + "px"
       b.style.top  = by + "px"
 
-      if (document.getElementById('myImg02').style.display != "none"){
-         if (myHitOther('myBullet','myImg02')){
-            hitZombie("myImg02", "zombie1HP")
-            resetBullet()
-         }
-      }
-      if (document.getElementById('myImg06').style.display != "none"){
-         if (myHitOther('myBullet','myImg06')){
-            hitZombie("myImg06", "zombie3HP")
-            resetBullet()
-         }
+      if (document.getElementById('myImg02').style.display != "none" &&
+          myHitOther('myBullet','myImg02')){
+         hitZombie("myImg02", "zombie1HP")
+         resetBullet()
       }
 
-      if (document.getElementById('myImg03').style.display != "none"){
-         if (myHitOther('myBullet','myImg03')){
-            hitZombie("myImg03", "zombie2HP")
-            resetBullet()
-         }
+      if (document.getElementById('myImg03').style.display != "none" &&
+          myHitOther('myBullet','myImg03')){
+         hitZombie("myImg03", "zombie2HP")
+         resetBullet()
+      }
+
+      if (document.getElementById('myImg06').style.display != "none" &&
+          myHitOther('myBullet','myImg06')){
+         hitZombie("myImg06", "zombie3HP")
+         resetBullet()
       }
 
       if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
@@ -184,80 +185,50 @@ function fireBullet(){
    }, 20)
 }
 
-function randomizeZombiePositions() {
-    let minX = 200, maxX = 800
-    let minY = 100, maxY = 400
+function randomizeZombiePositions(){
+   let minX = 200, maxX = 800
+   let minY = 100, maxY = 400
 
-   let z1 = document.getElementById("myImg02")
-   let z2 = document.getElementById("myImg03")
-   let z3 = document.getElementById("myImg06")
-
-    z1.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
-    z1.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
-
-    z2.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
-    z2.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
-
-   z3.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
-   z3.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
+   ;["myImg02","myImg03","myImg06"].forEach(id=>{
+      let z = document.getElementById(id)
+      z.style.left = Math.random()*(maxX-minX)+minX+"px"
+      z.style.top  = Math.random()*(maxY-minY)+minY+"px"
+   })
 }
 
-function checkAmmoPickup() {
-    let ammoElem = document.getElementById("myImg05")
-    if (ammoElem.style.display === "none") return
-
-    if (myHitOther("myImg01", "myImg05")) {
-        ammo += 6
-        if (ammo > maxAmmo) ammo = maxAmmo
-        updateAmmoDisplay()
-        ammoElem.style.display = "none"
-        document.all.myText01.value = "Picked up ammo!"
-    }
+function checkAmmoPickup(){
+   let a = document.getElementById("myImg05")
+   if (a.style.display !== "none" && myHitOther("myImg01","myImg05")){
+      ammo = Math.min(ammo + 6, maxAmmo)
+      updateAmmoDisplay()
+      a.style.display = "none"
+   }
 }
 
 setInterval(function(){
-    moveZombieTowardPlayer("myImg02", 2)
-    moveZombieTowardPlayer("myImg03", 2.5)
-    moveZombieTowardPlayer("myImg06", 6.5)
+   moveZombieTowardPlayer("myImg02", 2)
+   moveZombieTowardPlayer("myImg03", 2.5)
+   moveZombieTowardPlayer("myImg06", 6.5)
 
-    if (document.getElementById('myImg02').style.display != "none"){
-       if (myHitOther('myImg01','myImg02')) playerTakeDamage()
-    }
-    if (document.getElementById('myImg03').style.display != "none"){
-       if (myHitOther('myImg01','myImg03')) playerTakeDamage()
-    }
-   
-    if (document.getElementById('myImg06').style.display != "none"){
-       if (myHitOther('myImg01','myImg06')) playerTakeDamage()
-    }
+   if (myHitOther("myImg01","myImg02")) playerTakeDamage()
+   if (myHitOther("myImg01","myImg03")) playerTakeDamage()
+   if (myHitOther("myImg01","myImg06")) playerTakeDamage()
 
-    checkAmmoPickup()
-
+   checkAmmoPickup()
 }, 120)
 
-function moveZombieTowardPlayer(zombieID, speed){
-    let z = document.getElementById(zombieID)
-    if (z.style.display == "none") return
+function moveZombieTowardPlayer(id, speed){
+   let z = document.getElementById(id)
+   if (z.style.display == "none") return
 
-    let p = document.getElementById("myImg01")
+   let p = document.getElementById("myImg01")
+   let dx = parseFloat(p.style.left) - parseFloat(z.style.left)
+   let dy = parseFloat(p.style.top)  - parseFloat(z.style.top)
+   let d = Math.sqrt(dx*dx + dy*dy)
+   if (d < 1) return
 
-    let zx = parseFloat(z.style.left)
-    let zy = parseFloat(z.style.top)
-
-    let px = parseFloat(p.style.left)
-    let py = parseFloat(p.style.top)
-
-    let dx = px - zx
-    let dy = py - zy
-
-    let dist = Math.sqrt(dx*dx + dy*dy)
-    if (dist < 1) return
-
-    dx /= dist
-    dy /= dist
-
-    z.style.left = (zx + dx * speed) + "px"
-    z.style.top  = (zy + dy * speed) + "px"
+   z.style.left = parseFloat(z.style.left) + dx/d*speed + "px"
+   z.style.top  = parseFloat(z.style.top)  + dy/d*speed + "px"
 }
 
 </script>
