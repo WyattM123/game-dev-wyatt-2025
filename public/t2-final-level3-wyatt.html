@@ -90,6 +90,7 @@ function spawnHitParticle(x,y){
 
 function resetBullet(){
    clearInterval(bulletTimer)
+   bulletTimer = null
    document.getElementById('myBullet').style.left = "-200px"
    document.getElementById('myBullet').style.top  = "-200px"
    document.getElementById('myBullet').style.display = "none"
@@ -121,6 +122,8 @@ function hitZombie(zombieID, hpVarName){
 
 function fireBullet(){
 
+   clearInterval(bulletTimer)   // ✅ prevents speed stacking
+
    if (!canShoot || ammo <= 0) return
 
    ammo -= 1
@@ -141,7 +144,7 @@ function fireBullet(){
    b.style.top  = gy + 35 + "px"
    b.style.display = "block"
 
-   // 🔒 Lock direction
+   // 🔒 lock direction once
    bulletDX = 0
    bulletDY = 0
    if (lastDirection == "right") bulletDX = 10
