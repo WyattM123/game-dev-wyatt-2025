@@ -9,17 +9,22 @@ let lastDirection = "right"
 
 let canShoot = true
 let shootCooldown = 400
-let bullets = [] // store active bullets
+let bullets = []
 
 var zombie1HP = 2
 var zombie2HP = 2
 var zombie3HP = 1
 
 let playerHP = 10
-let canTakeDamage = true
 
 let ammo = 12
 let maxAmmo = 24
+
+let zombies = {
+   myImg02: { damage: 1, cooldown: 1000, canAttack: true },
+   myImg03: { damage: 1, cooldown: 1500, canAttack: true },
+   myImg06: { damage: 2, cooldown: 2000, canAttack: true }
+}
 
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
@@ -29,24 +34,29 @@ function updateAmmoDisplay(){
    document.getElementById("ammoDisplay").innerHTML = "Ammo: " + ammo + " / " + maxAmmo
 }
 
-function playerTakeDamage(){
-   if (!canTakeDamage) return
-
-   playerHP -= 1
+function playerTakeDamage(amount){
+   playerHP -= amount
    updateHealthDisplay()
-   canTakeDamage = false
 
    let r = document.getElementById("myImg01").getBoundingClientRect()
    spawnHitParticle(r.left + 40, r.top + 30)
-
-   setTimeout(function(){
-      canTakeDamage = true
-   }, 1000)
 
    if (playerHP <= 0){
       alert("Game Over")
       location.reload()
    }
+}
+
+function zombieAttack(zombieID){
+   let zData = zombies[zombieID]
+   if (!zData || !zData.canAttack) return
+
+   playerTakeDamage(zData.damage)
+
+   zData.canAttack = false
+   setTimeout(() => {
+      zData.canAttack = true
+   }, zData.cooldown)
 }
 
 function myHitOther(el1, el2){
@@ -74,18 +84,16 @@ function spawnHitParticle(x,y){
    p.style.transition = "opacity 0.4s ease-out, transform 0.4s ease-out"
    document.body.appendChild(p)
 
-   setTimeout(function(){
+   setTimeout(() => {
       p.style.opacity = "0"
       p.style.transform = "scale(2)"
    }, 10)
 
-   setTimeout(function(){
-      p.remove()
-   }, 450)
+   setTimeout(() => p.remove(), 450)
 }
 
 function checkExitDoor(){
-   if (myHitOther(document.getElementById('myImg01'),document.getElementById('myImg04'))){
+   if (myHitOther(myImg01,myImg04)){
       document.all.myText01.value = "Made it out... For now"
       alert("Next level")
       location = "https://www.google.ca"
@@ -97,7 +105,7 @@ function hitZombie(zombieID, hpVarName){
    let rect = z.getBoundingClientRect()
    spawnHitParticle(rect.left + 40, rect.top + 30)
 
-   window[hpVarName] -= 1
+   window[hpVarName]--
 
    if (window[hpVarName] <= 0){
       z.style.display = "none"
@@ -107,77 +115,77 @@ function hitZombie(zombieID, hpVarName){
    }
 }
 
-function fireBullet() {
-    if (!canShoot || ammo <= 0) return;
+function fireBullet(){
+   if (!canShoot || ammo <= 0) return
 
-    ammo -= 1;
-    updateAmmoDisplay();
+   ammo--
+   updateAmmoDisplay()
 
-    canShoot = false;
-    setTimeout(() => canShoot = true, shootCooldown);
+   canShoot = false
+   setTimeout(() => canShoot = true, shootCooldown)
 
-    let b = document.createElement("div");
-    b.style.position = "absolute";
-    b.style.width = "12px";
-    b.style.height = "12px";
-    b.style.background = "yellow";
-    b.style.zIndex = 9999;
+   let b = document.createElement("div")
+   b.style.position = "absolute"
+   b.style.width = "12px"
+   b.style.height = "12px"
+   b.style.background = "yellow"
+   b.style.zIndex = 9999
 
-    let g = document.getElementById('myImg01');
-    let gx = parseInt(g.style.left)
-    let gy = parseInt(g.style.top)
+   let g = myImg01
+   let gx = parseInt(g.style.left)
+   let gy = parseInt(g.style.top)
 
-    b.style.left = gx + 45 + "px";
-    b.style.top  = gy + 35 + "px";
+   b.style.left = gx + 45 + "px"
+   b.style.top  = gy + 35 + "px"
 
-    document.body.appendChild(b);
+   document.body.appendChild(b)
 
-    let dx = 0, dy = 0;
-    if (lastDirection == "right") dx = 10;
-    if (lastDirection == "left")  dx = -10;
-    if (lastDirection == "up")    dy = -10;
-    if (lastDirection == "down")  dy = 10;
+   let dx = 0, dy = 0
+   if (lastDirection == "right") dx = 10
+   if (lastDirection == "left")  dx = -10
+   if (lastDirection == "up")    dy = -10
+   if (lastDirection == "down")  dy = 10
 
-    let bulletObj = {el: b, dx: dx, dy: dy, interval: null};
+   let bulletObj = {el: b, dx: dx, dy: dy, interval: null}
 
-    bulletObj.interval = setInterval(() => {
-        let bx = parseInt(b.style.left) + bulletObj.dx;
-        let by = parseInt(b.style.top) + bulletObj.dy;
-        b.style.left = bx + "px";
-        b.style.top  = by + "px";
+   bulletObj.interval = setInterval(() => {
+      let bx = parseInt(b.style.left) + dx
+      let by = parseInt(b.style.top) + dy
+      b.style.left = bx + "px"
+      b.style.top  = by + "px"
 
-        if (document.getElementById('myImg02').style.display != "none" && myHitOther(b, document.getElementById('myImg02'))) {
-            hitZombie("myImg02", "zombie1HP");
-            removeBullet(bulletObj);
-        }
-        if (document.getElementById('myImg03').style.display != "none" && myHitOther(b, document.getElementById('myImg03'))) {
-            hitZombie("myImg03", "zombie2HP");
-            removeBullet(bulletObj);
-        }
-        if (document.getElementById('myImg06').style.display != "none" && myHitOther(b, document.getElementById('myImg06'))) {
-            hitZombie("myImg06", "zombie3HP");
-            removeBullet(bulletObj);
-        }
+      if (myImg02.style.display != "none" && myHitOther(b,myImg02)){
+         hitZombie("myImg02","zombie1HP")
+         removeBullet(bulletObj)
+      }
+      if (myImg03.style.display != "none" && myHitOther(b,myImg03)){
+         hitZombie("myImg03","zombie2HP")
+         removeBullet(bulletObj)
+      }
+      if (myImg06.style.display != "none" && myHitOther(b,myImg06)){
+         hitZombie("myImg06","zombie3HP")
+         removeBullet(bulletObj)
+      }
 
-        if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
-            removeBullet(bulletObj);
-        }
-    }, 20);
+      if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
+         removeBullet(bulletObj)
+      }
+   }, 20)
 
-    bullets.push(bulletObj);
+   bullets.push(bulletObj)
 }
 
-function removeBullet(bulletObj) {
-    clearInterval(bulletObj.interval);
-    bulletObj.el.remove();
-    bullets = bullets.filter(b => b !== bulletObj);
+function removeBullet(bulletObj){
+   clearInterval(bulletObj.interval)
+   bulletObj.el.remove()
+   bullets = bullets.filter(b => b !== bulletObj)
 }
 
 function randomizeZombiePositions(){
    let minX = 200, maxX = 800
    let minY = 100, maxY = 400
 
-   ;["myImg02","myImg03","myImg06"].forEach(id=>{
+   ;["myImg02","myImg03","myImg06"].forEach(id => {
       let z = document.getElementById(id)
       z.style.left = Math.random()*(maxX-minX)+minX+"px"
       z.style.top  = Math.random()*(maxY-minY)+minY+"px"
@@ -185,34 +193,32 @@ function randomizeZombiePositions(){
 }
 
 function checkAmmoPickup(){
-   let a = document.getElementById("myImg05")
-   if (a.style.display !== "none" && myHitOther(document.getElementById("myImg01"),a)){
+   if (myImg05.style.display != "none" && myHitOther(myImg01,myImg05)){
       ammo = Math.min(ammo + 6, maxAmmo)
       updateAmmoDisplay()
-      a.style.display = "none"
+      myImg05.style.display = "none"
       document.all.myText01.value = "Picked up ammo!"
    }
 }
 
 setInterval(function(){
-   moveZombieTowardPlayer("myImg02", 2)
-   moveZombieTowardPlayer("myImg03", 2.5)
-   moveZombieTowardPlayer("myImg06", 6.5)
+   moveZombieTowardPlayer("myImg02",2)
+   moveZombieTowardPlayer("myImg03",2.5)
+   moveZombieTowardPlayer("myImg06",6.5)
 
-   if (document.getElementById('myImg02').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg02'))) playerTakeDamage()
-   if (document.getElementById('myImg03').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg03'))) playerTakeDamage()
-   if (document.getElementById('myImg06').style.display != "none" && myHitOther(document.getElementById("myImg01"),document.getElementById('myImg06'))) playerTakeDamage()
+   if (myImg02.style.display != "none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
+   if (myImg03.style.display != "none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
+   if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
 
    checkAmmoPickup()
 }, 120)
 
-function moveZombieTowardPlayer(id, speed){
+function moveZombieTowardPlayer(id,speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
 
-   let p = document.getElementById("myImg01")
-   let dx = parseFloat(p.style.left) - parseFloat(z.style.left)
-   let dy = parseFloat(p.style.top)  - parseFloat(z.style.top)
+   let dx = parseFloat(myImg01.style.left) - parseFloat(z.style.left)
+   let dy = parseFloat(myImg01.style.top)  - parseFloat(z.style.top)
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
@@ -270,10 +276,10 @@ style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 style="position:absolute; width:100px; height:80px; left:1500px; top:600px;">
 
 <img id="myImg07" src="Banner.gif"
-style="position:absolute; width:200px; height:160px; left:1200px; top:700px; z-index:1">
+style="position:absolute; width:200px; height:160px; left:1200px; top:700px; z-index:1;">
 
 <img id="myImg08" src="Metalchair.gif"
-style="position:absolute; width:100px; height:80px; left:800px; top:600px; z-index:1">
+style="position:absolute; width:100px; height:80px; left:800px; top:600px; z-index:1;">
 
 <div id="myBullet"
 style="position:absolute; width:12px; height:12px; background:yellow;
