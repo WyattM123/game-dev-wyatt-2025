@@ -12,6 +12,7 @@ let bulletLifeTimer = null
 
 var zombie1HP = 2
 var zombie2HP = 2
+var zombie3HP = 1
 
 let playerHP = 10
 let canTakeDamage = true
@@ -162,6 +163,12 @@ function fireBullet(){
             resetBullet()
          }
       }
+      if (document.getElementById('myImg06').style.display != "none"){
+         if (myHitOther('myBullet','myImg06')){
+            hitZombie("myImg06", "zombie3HP")
+            resetBullet()
+         }
+      }
 
       if (document.getElementById('myImg03').style.display != "none"){
          if (myHitOther('myBullet','myImg03')){
@@ -181,14 +188,18 @@ function randomizeZombiePositions() {
     let minX = 200, maxX = 800
     let minY = 100, maxY = 400
 
-    let z1 = document.getElementById("myImg02")
-    let z2 = document.getElementById("myImg03")
+   let z1 = document.getElementById("myImg02")
+   let z2 = document.getElementById("myImg03")
+   let z3 = document.getElementById("myImg06")
 
     z1.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
     z1.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
 
     z2.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
     z2.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
+
+   z3.style.left = Math.floor(Math.random() * (maxX - minX) + minX) + "px"
+   z3.style.top  = Math.floor(Math.random() * (maxY - minY) + minY) + "px"
 }
 
 function checkAmmoPickup() {
@@ -207,12 +218,17 @@ function checkAmmoPickup() {
 setInterval(function(){
     moveZombieTowardPlayer("myImg02", 2)
     moveZombieTowardPlayer("myImg03", 2.5)
+    moveZombieTowardPlayer("myImg06", 6.5)
 
     if (document.getElementById('myImg02').style.display != "none"){
        if (myHitOther('myImg01','myImg02')) playerTakeDamage()
     }
     if (document.getElementById('myImg03').style.display != "none"){
        if (myHitOther('myImg01','myImg03')) playerTakeDamage()
+    }
+   
+    if (document.getElementById('myImg06').style.display != "none"){
+       if (myHitOther('myImg01','myImg06')) playerTakeDamage()
     }
 
     checkAmmoPickup()
@@ -285,6 +301,9 @@ style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
 style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
 
 <img id="myImg03" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
+
+<img id="myImg06" src="Zombie3.gif"
 style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 
 <img id="myImg04" src="Exitdoor.gif"
