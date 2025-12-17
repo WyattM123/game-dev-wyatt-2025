@@ -223,8 +223,8 @@ function moveZombieTowardPlayer(zombieID, speed){
 onload="updateHealthDisplay(); updateAmmoDisplay()"
 
 onkeydown="{
-   if (event.key == 'd') { lastDirection='right'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
-   if (event.key == 'a') { lastDirection='left';  myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
+   if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
+   if (event.key == 'a') { lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
    if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
    if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
    checkExitDoor()
@@ -245,14 +245,15 @@ onkeydown="{
 }">
 
 <input type=button value="W" onclick="{ lastDirection='up'; myImg01.style.top=parseInt(myImg01.style.top)-10+'px'; checkExitDoor() }">
-<input type=button value="A" onclick="{ lastDirection='left'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px'; checkExitDoor() }">
+<input type=button value="A" onclick="{ lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px'; checkExitDoor() }">
 <input type=button value="S" onclick="{ lastDirection='down'; myImg01.style.top=parseInt(myImg01.style.top)+10+'px'; checkExitDoor() }">
-<input type=button value="D" onclick="{ lastDirection='right'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px'; checkExitDoor() }">
+<input type=button value="D" onclick="{ lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px'; checkExitDoor() }">
+
 
 <input type=button value="shoot" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif"
-style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
+style="position:absolute; width:100px; height:80px; left:10px; top:190px; scaleX(1);">
 
 <img id="myImg02" src="Zombie1.gif"
 style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
