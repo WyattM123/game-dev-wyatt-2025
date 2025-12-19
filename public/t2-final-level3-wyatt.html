@@ -26,6 +26,18 @@ let zombies = {
    myImg06: { damage: 2, cooldown: 2000, canAttack: true }
 }
 
+let keyDropped = false
+let keyZombieID = ["myImg02","myImg03","myImg06"][Math.floor(Math.random()*3)]
+
+function spawnKey(x, y){
+   if (keyDropped) return
+   keyDropped = true
+
+   myImg07.style.left = x + "px"
+   myImg07.style.top  = y + "px"
+   myImg07.style.display = "block"
+}
+
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
 }
@@ -108,8 +120,16 @@ function hitZombie(zombieID, hpVarName){
    window[hpVarName]--
 
    if (window[hpVarName] <= 0){
+
+      if (zombieID === keyZombieID){
+         spawnKey(rect.left + 30, rect.top + 30)
+         document.all.myText01.value = zombieID + " dropped a key!"
+      } else {
+         document.all.myText01.value = zombieID + " shot dead"
+      }
+
       z.style.display = "none"
-      document.all.myText01.value = zombieID + " shot dead"
+
    } else {
       document.all.myText01.value = zombieID + " shot"
    }
@@ -238,6 +258,7 @@ onkeydown="{
    if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
    checkExitDoor()
 }">
+
 <br>
 
 <div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
@@ -245,23 +266,10 @@ onkeydown="{
 
 <input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
 
-<input type=button value="Auto Background Left" onclick="{
-  clearInterval(myClock)
-  myClock = setInterval(function(){
-      myGlobalX -= 5
-      myBody.style.backgroundPosition = myGlobalX + 'px 0px'
-  }, 100)
-}">
-
-<input type=button value="W" onclick="{ lastDirection='up'; myImg01.style.top=parseInt(myImg01.style.top)-10+'px'; checkExitDoor() }">
-<input type=button value="A" onclick="{ lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px'; checkExitDoor() }">
-<input type=button value="S" onclick="{ lastDirection='down'; myImg01.style.top=parseInt(myImg01.style.top)+10+'px'; checkExitDoor() }">
-<input type=button value="D" onclick="{ lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px'; checkExitDoor() }">
-
 <input type=button value="shoot" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif"
-style="position:absolute; width:100px; height:80px; left:10px; top:190px; z-index:9998; transform: scaleX(1);">
+style="position:absolute; width:100px; height:80px; left:10px; top:190px; z-index:9998;">
 
 <img id="myImg02" src="Zombie1.gif"
 style="position:absolute; width:100px; height:80px; left:350px; top:190px; z-index:10000;">
@@ -275,27 +283,10 @@ style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-ind
 <img id="myImg04" src="Exitdoor.gif"
 style="position:absolute; width:100px; height:80px; left:1500px; top:600px; z-index:10000;">
 
-<img id="myImg07" src="Banner.gif"
-style="position:absolute; width:400px; height:320px; left:1200px; top:700px; z-index:1;">
-
-<img id="myImg09" src="trash.png"
-style="position:absolute; width:200px; height:160px; left:400px; top:300px; z-index:1;">
-
-<img id="myImg08" src="Metalchair.gif"
-style="position:absolute; width:180px; height:140px; left:800px; top:600px; z-index:1;">
-
-<img id="myImg10" src="Metalchair.gif"
-style="position:absolute; width:180px; height:140px; left:600px; top:620px; z-index:1;">
-
-<img id="myImg11" src="Metalchair.gif"
-style="position:absolute; width:180px; height:140px; left:500px; top:650px; z-index:1;">
-
-<div id="myBullet"
-style="position:absolute; width:12px; height:12px; background:yellow;
-left:-200px; top:-200px; display:none; z-index:9999;">
-</div>
-
 <img id="myImg05" src="Ammunition1.gif"
 style="position:absolute; width:100px; height:80px; left:700px; top:800px;">
+
+<img id="myImg07" src="Key.gif"
+style="position:absolute; width:100px; height:80px; left:700px; top:800px; display:none;">
 
 </body>
