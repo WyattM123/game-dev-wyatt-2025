@@ -225,7 +225,7 @@ function moveZombieTowardPlayer(id, speed){
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions();"
 
 onkeydown="{
-   if (event.code == 'Space') { event.preventDefault() fireBullet() }
+   if (event.code == 'Space') { event.preventDefault() fireBullet(); }
    if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
    if (event.key == 'a') { lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
    if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
