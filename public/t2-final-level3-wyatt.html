@@ -258,12 +258,31 @@ function moveZombieTowardPlayer(id,speed){
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions();"
 
 onkeydown="{
-   if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
-   if (event.key == 'a') { lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
-   if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
-   if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
+   lastPlayerLeft = parseInt(myImg01.style.left)
+   lastPlayerTop  = parseInt(myImg01.style.top)
+
+   if (event.key == 'd') {
+      lastDirection='right'
+      myImg01.style.transform = 'scaleX(1)'
+      myImg01.style.left = lastPlayerLeft + 10 + 'px'
+   }
+   if (event.key == 'a') {
+      lastDirection='left'
+      myImg01.style.transform = 'scaleX(-1)'
+      myImg01.style.left = lastPlayerLeft - 10 + 'px'
+   }
+   if (event.key == 's') {
+      lastDirection='down'
+      myImg01.style.top = lastPlayerTop + 10 + 'px'
+   }
+   if (event.key == 'w') {
+      lastDirection='up'
+      myImg01.style.top = lastPlayerTop - 10 + 'px'
+   }
+
+   blockPlayerIfHit()
    checkExitDoor()
-}">
+}"
 
 <br>
 
