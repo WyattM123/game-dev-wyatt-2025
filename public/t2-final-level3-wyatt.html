@@ -1,4 +1,4 @@
-k<h1>t2-final-level3-wyatt.html</h1>
+<h1>t2-final-level3-wyatt.html</h1>
 
 <script>
 
@@ -29,10 +29,12 @@ let zombies = {
 let keyDropped = false
 let keyZombieID = ["myImg02","myImg03","myImg06"][Math.floor(Math.random()*3)]
 
+let lastPlayerLeft = 10
+let lastPlayerTop  = 190
+
 function spawnKey(x, y){
    if (keyDropped) return
    keyDropped = true
-
    myImg07.style.left = x + "px"
    myImg07.style.top  = y + "px"
    myImg07.style.display = "block"
@@ -64,11 +66,8 @@ function zombieAttack(zombieID){
    if (!zData || !zData.canAttack) return
 
    playerTakeDamage(zData.damage)
-
    zData.canAttack = false
-   setTimeout(() => {
-      zData.canAttack = true
-   }, zData.cooldown)
+   setTimeout(() => zData.canAttack = true, zData.cooldown)
 }
 
 function myHitOther(el1, el2){
@@ -104,6 +103,17 @@ function spawnHitParticle(x,y){
    setTimeout(() => p.remove(), 450)
 }
 
+function blockPlayerIfHit(){
+   if (
+      myHitOther(myImg01, myImg08) ||
+      myHitOther(myImg01, myImg10) ||
+      myHitOther(myImg01, myImg11)
+   ){
+      myImg01.style.left = lastPlayerLeft + "px"
+      myImg01.style.top  = lastPlayerTop  + "px"
+   }
+}
+
 function checkExitDoor(){
    if (myHitOther(myImg01,myImg04)){
       document.all.myText01.value = "Made it out... For now"
@@ -120,16 +130,13 @@ function hitZombie(zombieID, hpVarName){
    window[hpVarName]--
 
    if (window[hpVarName] <= 0){
-
       if (zombieID === keyZombieID){
          spawnKey(rect.left + 30, rect.top + 30)
          document.all.myText01.value = zombieID + " dropped a key!"
       } else {
          document.all.myText01.value = zombieID + " shot dead"
       }
-
       z.style.display = "none"
-
    } else {
       document.all.myText01.value = zombieID + " shot"
    }
@@ -151,9 +158,8 @@ function fireBullet(){
    b.style.background = "yellow"
    b.style.zIndex = 9999
 
-   let g = myImg01
-   let gx = parseInt(g.style.left)
-   let gy = parseInt(g.style.top)
+   let gx = parseInt(myImg01.style.left)
+   let gy = parseInt(myImg01.style.top)
 
    b.style.left = gx + 45 + "px"
    b.style.top  = gy + 35 + "px"
