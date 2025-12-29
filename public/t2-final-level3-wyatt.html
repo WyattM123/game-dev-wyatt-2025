@@ -196,6 +196,15 @@ function fireBullet(){
       if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
          removeBullet(bulletObj)
       }
+      if (myImg08.style.display != "none" && myHitOther(b,myImg08)){
+         removeBullet(bulletObj) 
+      }
+      if (myImg10.style.display != "none" && myHitOther(b,myImg10)){
+         removeBullet(bulletObj) 
+      }
+      if (myImg11.style.display != "none" && myHitOther(b,myImg11)){
+         removeBullet(bulletObj) 
+      }      
    }, 20)
 
    bullets.push(bulletObj)
