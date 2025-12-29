@@ -262,7 +262,9 @@ onkeydown="{
    lastPlayerTop  = parseInt(myImg01.style.top)
 
    if (event.code == 'Space') {
+      event.preventDefault()
       fireBullet()
+   }
 
    if (event.key == 'd') {
       lastDirection='right'
