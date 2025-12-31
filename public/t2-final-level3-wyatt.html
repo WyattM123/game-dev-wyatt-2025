@@ -1,4 +1,4 @@
-<h1>t2-final-level3-wyatt.html</h1>
+<h1>t2-final-level3-wyatt.html</h1> <b style="color:green; background-color:yellow;">Objective: Find Key then leave</b>
 
 <script>
 
@@ -40,6 +40,14 @@ function spawnKey(x, y){
    myImg07.style.display = "block"
 }
 
+function checkKeyPickup(){
+   if (myImg07.style.display != "none" && myHitOther(myImg01, myImg07)){
+      myImg07.style.display = "none"
+      myImg11.style.display = "none"
+      document.all.myText01.value = "Da door unlocked"
+   }
+}
+   
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
 }
@@ -132,7 +140,7 @@ function hitZombie(zombieID, hpVarName){
    if (window[hpVarName] <= 0){
       if (zombieID === keyZombieID){
          spawnKey(rect.left + 30, rect.top + 30)
-         document.all.myText01.value = zombieID + " dropped a key!"
+         document.all.myText01.value = zombieID + " had a key on him"
       } else {
          document.all.myText01.value = zombieID + " shot dead"
       }
@@ -232,7 +240,7 @@ function checkAmmoPickup(){
       ammo = Math.min(ammo + 6, maxAmmo)
       updateAmmoDisplay()
       myImg05.style.display = "none"
-      document.all.myText01.value = "Picked up ammo!"
+      document.all.myText01.value = "Picked up ammo"
    }
 }
 
@@ -246,6 +254,7 @@ setInterval(function(){
    if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
 
    checkAmmoPickup()
+   checkKeyPickup()
 }, 120)
 
 function moveZombieTowardPlayer(id,speed){
