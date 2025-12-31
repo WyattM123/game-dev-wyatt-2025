@@ -210,14 +210,25 @@ function moveZombieTowardPlayer(id, speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
 
-   let p = document.getElementById("myImg01")
-   let dx = parseFloat(p.style.left) - parseFloat(z.style.left)
-   let dy = parseFloat(p.style.top)  - parseFloat(z.style.top)
+   let zx = parseFloat(z.style.left)
+   let zy = parseFloat(z.style.top)
+
+   let px = parseFloat(myImg01.style.left)
+   let py = parseFloat(myImg01.style.top)
+
+   let dx = px - zx
+   let dy = py - zy
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
-   z.style.left = parseFloat(z.style.left) + dx/d*speed + "px"
-   z.style.top  = parseFloat(z.style.top)  + dy/d*speed + "px"
+   z.style.left = zx + (dx / d) * speed + "px"
+   z.style.top  = zy + (dy / d) * speed + "px"
+
+   if (dx > 0){
+      z.style.transform = "scaleX(1)"
+   } else {
+      z.style.transform = "scaleX(-1)"
+   }
 }
 
 </script>
