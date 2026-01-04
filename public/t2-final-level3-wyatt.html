@@ -1,7 +1,7 @@
-<h1>t2-final-level3-wyatt.html</h1> <b style="color:green; background-color:darkgreen;">Objective: Find Key then leave</b>
+<h1>t2-final-level3-wyatt.html</h1>
+<b style="color:green; background-color:darkgreen;">Objective: Find Key then leave</b>
 
 <script>
-
 let myGlobalX = 0
 let myClock
 let myScore = 10
@@ -47,7 +47,7 @@ function checkKeyPickup(){
       document.all.myText01.value = "Da door unlocked"
    }
 }
-   
+
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
 }
@@ -60,7 +60,7 @@ function playerTakeDamage(amount){
    playerHP -= amount
    updateHealthDisplay()
 
-   let r = document.getElementById("myImg01").getBoundingClientRect()
+   let r = myImg01.getBoundingClientRect()
    spawnHitParticle(r.left + 40, r.top + 30)
 
    if (playerHP <= 0){
@@ -120,6 +120,17 @@ function blockPlayerIfHit(){
       myImg01.style.left = lastPlayerLeft + "px"
       myImg01.style.top  = lastPlayerTop  + "px"
    }
+}
+
+/* ===============================
+   NEW: ZOMBIE WALL COLLISION
+================================ */
+function zombieHitWall(zombie){
+   return (
+      myHitOther(zombie, myImg08) ||
+      myHitOther(zombie, myImg10) ||
+      myHitOther(zombie, myImg11)
+   )
 }
 
 function checkExitDoor(){
@@ -204,15 +215,9 @@ function fireBullet(){
       if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
          removeBullet(bulletObj)
       }
-      if (myImg08.style.display != "none" && myHitOther(b,myImg08)){
-         removeBullet(bulletObj) 
-      }
-      if (myImg10.style.display != "none" && myHitOther(b,myImg10)){
-         removeBullet(bulletObj) 
-      }
-      if (myImg11.style.display != "none" && myHitOther(b,myImg11)){
-         removeBullet(bulletObj) 
-      }      
+      if (myImg08.style.display != "none" && myHitOther(b,myImg08)) removeBullet(bulletObj)
+      if (myImg10.style.display != "none" && myHitOther(b,myImg10)) removeBullet(bulletObj)
+      if (myImg11.style.display != "none" && myHitOther(b,myImg11)) removeBullet(bulletObj)
    }, 20)
 
    bullets.push(bulletObj)
@@ -257,34 +262,41 @@ setInterval(function(){
    checkKeyPickup()
 }, 120)
 
+/* ===============================
+   MODIFIED: ZOMBIE MOVEMENT
+================================ */
 function moveZombieTowardPlayer(id, speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
 
-   let zx = parseFloat(z.style.left)
-   let zy = parseFloat(z.style.top)
+   let oldX = parseFloat(z.style.left)
+   let oldY = parseFloat(z.style.top)
 
    let px = parseFloat(myImg01.style.left)
    let py = parseFloat(myImg01.style.top)
 
-   let dx = px - zx
-   let dy = py - zy
+   let dx = px - oldX
+   let dy = py - oldY
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
-   z.style.left = zx + (dx / d) * speed + "px"
-   z.style.top  = zy + (dy / d) * speed + "px"
+   z.style.left = oldX + (dx / d) * speed + "px"
+   z.style.top  = oldY + (dy / d) * speed + "px"
 
-   if (dx > 0){
-      z.style.transform = "scaleX(-1)"
-   } else {
-      z.style.transform = "scaleX(1)"
+   if (zombieHitWall(z)){
+      z.style.left = oldX + "px"
+      z.style.top  = oldY + "px"
+      return
    }
-}
 
+   z.style.transform = dx > 0 ? "scaleX(-1)" : "scaleX(1)"
+}
 </script>
 
-<body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background2.gif"
+<body
+id="myBody"
+style="background-repeat:repeat; background-size:20%"
+background="Background2.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions();"
 
 onkeydown="{
@@ -317,48 +329,33 @@ onkeydown="{
 
    blockPlayerIfHit()
    checkExitDoor()
-}"
+}">
 
-<br>
+<div id="healthDisplay" style="font-size:24px;font-weight:bold;color:red;"></div>
+<div id="ammoDisplay" style="font-size:24px;font-weight:bold;color:orange;"></div>
 
-<div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
-<div id="ammoDisplay" style="font-size:24px; font-weight:bold; color:orange;"></div>
-
-<input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
-
+<input id="myText01" type=text size=50 placeholder="Feedback here"><br>
 <input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
 
-<img id="myImg01" src="olddudewitgun.gif"
-style="position:absolute; width:100px; height:80px; left:10px; top:190px; z-index:9998;">
-
-<img id="myImg02" src="Zombie1.gif"
-style="position:absolute; width:100px; height:80px; left:350px; top:190px; z-index:10000;">
-
-<img id="myImg03" src="Zombie2.gif"
-style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:10000;">
-
-<img id="myImg06" src="Zombie3.gif"
-style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:10000;">
-
-<img id="myImg04" src="Exitdoor.gif"
-style="position:absolute; width:100px; height:80px; left:1500px; top:190px; z-index:10000;">
-
-<img id="myImg05" src="Ammunition1.gif"
-style="position:absolute; width:100px; height:80px; left:700px; top:800px;">
-
-<img id="myImg07" src="Key.gif"
-style="position:absolute; width:100px; height:80px; left:700px; top:800px; display:none;">
-
-<img id="myImg08" src="Lightwall.png"
-style="position:absolute; width:50px; height:500px; left:1300px; top:0px;">
-
-<img id="myImg10" src="Lightwall.png"
-style="position:absolute; width:50px; height:500px; left:1300px; top:600px;">
-
-<img id="myImg09" src="Banner.gif"
-style="position:absolute; width:400px; height:320px; left:800px; top:700px;">
-
-<img id="myImg11" src="door.png"
-style="position:absolute; width:80px; height:100px; left:1290px; top:500px;">
-
+<img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px;">
+   
+<img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px;">
+   
+<img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px;">
+   
+<img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px;">
+   
+<img id="myImg04" src="Exitdoor.gif" style="position:absolute;width:100px;height:80px;left:1500px;top:190px;">
+   
+<img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px;">
+   
+<img id="myImg07" src="Key.gif" style="position:absolute;width:100px;height:80px;display:none;">
+   
+<img id="myImg08" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
+   
+<img id="myImg10" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
+   
+<img id="myImg09" src="Banner.gif" style="position:absolute;width:400px;height:320px;left:800px;top:700px;">
+   
+<img id="myImg11" src="door.png" style="position:absolute;width:80px;height:100px;left:1290px;top:500px;">
 </body>
