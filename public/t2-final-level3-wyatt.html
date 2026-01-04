@@ -262,9 +262,6 @@ setInterval(function(){
    checkKeyPickup()
 }, 120)
 
-/* ===============================
-   MODIFIED: ZOMBIE MOVEMENT
-================================ */
 function moveZombieTowardPlayer(id, speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
@@ -280,13 +277,28 @@ function moveZombieTowardPlayer(id, speed){
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
-   z.style.left = oldX + (dx / d) * speed + "px"
-   z.style.top  = oldY + (dy / d) * speed + "px"
+   let stepX = (dx / d) * speed
+   let stepY = (dy / d) * speed
+
+   // normal movement
+   z.style.left = oldX + stepX + "px"
+   z.style.top  = oldY + stepY + "px"
 
    if (zombieHitWall(z)){
-      z.style.left = oldX + "px"
+      // zombie try x
+      z.style.left = oldX + stepX + "px"
       z.style.top  = oldY + "px"
-      return
+
+      if (zombieHitWall(z)){
+         // zombie tries y
+         z.style.left = oldX + "px"
+         z.style.top  = oldY + stepY + "px"
+
+         if (zombieHitWall(z)){
+            z.style.left = oldX + "px"
+            z.style.top  = oldY + "px"
+         }
+      }
    }
 
    z.style.transform = dx > 0 ? "scaleX(-1)" : "scaleX(1)"
