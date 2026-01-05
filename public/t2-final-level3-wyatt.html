@@ -26,6 +26,12 @@ let zombies = {
    myImg06: { damage: 2, cooldown: 2000, canAttack: true }
 }
 
+let zombieAI = {
+   myImg02: { mode: "chase", side: 1 },
+   myImg03: { mode: "chase", side: -1 },
+   myImg06: { mode: "chase", side: 1 }
+}
+
 let keyDropped = false
 let keyZombieID = ["myImg02","myImg03","myImg06"][Math.floor(Math.random()*3)]
 
@@ -122,9 +128,6 @@ function blockPlayerIfHit(){
    }
 }
 
-/* ===============================
-   NEW: ZOMBIE WALL COLLISION
-================================ */
 function zombieHitWall(zombie){
    return (
       myHitOther(zombie, myImg08) ||
@@ -266,6 +269,8 @@ function moveZombieTowardPlayer(id, speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
 
+   let ai = zombieAI[id]
+
    let oldX = parseFloat(z.style.left)
    let oldY = parseFloat(z.style.top)
 
@@ -277,27 +282,37 @@ function moveZombieTowardPlayer(id, speed){
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
-   let stepX = (dx / d) * speed
-   let stepY = (dy / d) * speed
+   let vx = (dx / d) * speed
+   let vy = (dy / d) * speed
 
-   // normal movement
-   z.style.left = oldX + stepX + "px"
-   z.style.top  = oldY + stepY + "px"
-
-   if (zombieHitWall(z)){
-      // zombie try x
-      z.style.left = oldX + stepX + "px"
-      z.style.top  = oldY + "px"
+   if (ai.mode === "chase"){
+      z.style.left = oldX + vx + "px"
+      z.style.top  = oldY + vy + "px"
 
       if (zombieHitWall(z)){
-         // zombie tries y
+         ai.mode = "wall"
+         ai.side = Math.random() < 0.5 ? 1 : -1
          z.style.left = oldX + "px"
-         z.style.top  = oldY + stepY + "px"
+         z.style.top  = oldY + "px"
+      }
+   }
 
-         if (zombieHitWall(z)){
-            z.style.left = oldX + "px"
-            z.style.top  = oldY + "px"
-         }
+   else if (ai.mode === "wall"){
+      let wx = -vy * ai.side
+      let wy =  vx * ai.side
+
+      z.style.left = oldX + wx + "px"
+      z.style.top  = oldY + wy + "px"
+
+      z.style.left = oldX + vx + "px"
+      z.style.top  = oldY + vy + "px"
+
+      if (!zombieHitWall(z)){
+         ai.mode = "chase"
+      } else {
+         // stay on wall
+         z.style.left = oldX + wx + "px"
+         z.style.top  = oldY + wy + "px"
       }
    }
 
