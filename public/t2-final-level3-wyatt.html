@@ -11,9 +11,9 @@ let canShoot = true
 let shootCooldown = 400
 let bullets = []
 
-var zombie1HP = 2
-var zombie2HP = 2
-var zombie3HP = 1
+var zombie1HP = 2 // normal
+var zombie2HP = 2 // normal
+var zombie3HP = 1 // fast
 
 let playerHP = 10
 
@@ -265,64 +265,62 @@ setInterval(function(){
    checkKeyPickup()
 }, 120)
 
-function moveZombieTowardPlayer(id, speed){
-   let z = document.getElementById(id)
-   if (z.style.display == "none") return
+function moveZombieTowardPlayer(id, speed) {
+    let z = document.getElementById(id);
+    if (z.style.display === "none") return; // dead zombie
 
-   let ai = zombieAI[id]
+    let ai = zombieAI[id];
 
-   let oldX = parseFloat(z.style.left)
-   let oldY = parseFloat(z.style.top)
+    // Get current positions
+    let zx = parseFloat(z.style.left);
+    let zy = parseFloat(z.style.top);
+    let px = parseFloat(myImg01.style.left);
+    let py = parseFloat(myImg01.style.top);
 
-   let px = parseFloat(myImg01.style.left)
-   let py = parseFloat(myImg01.style.top)
+    let dx = px - zx;
+    let dy = py - zy;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 1) return;
 
-   let dx = px - oldX
-   let dy = py - oldY
-   let d = Math.sqrt(dx*dx + dy*dy)
-   if (d < 1) return
+    if (ai.mode === "chase") {
+        // Move toward player
+        let vx = (dx / dist) * speed;
+        let vy = (dy / dist) * speed;
 
-   if (ai.mode === "chase") {
-      // Move toward player
-      let vx = (dx / d) * speed
-      let vy = (dy / d) * speed
+        z.style.left = zx + vx + "px";
+        z.style.top  = zy + vy + "px";
 
-      z.style.left = oldX + vx + "px"
-      z.style.top  = oldY + vy + "px"
+        //wall collision
+        if (zombieHitWall(z)) {
+            ai.mode = "wall";
 
-      if (zombieHitWall(z)) {
-         ai.mode = "wall"
-         let directions = ["up","down","left","right"]
-         let opposite = {up:"down", down:"up", left:"right", right:"left"}
-         directions = directions.filter(dir => dir != opposite[ai.lastDirection])
-         ai.wallDirection = directions[Math.floor(Math.random()*directions.length)]
-      } else {
-         ai.lastDirection = dx > 0 ? "right" : "left"
-      }
-   } 
-   else if (ai.mode === "wall") {
-      // Move in direction
-      let vx = 0, vy = 0
-      switch(ai.wallDirection){
-         case "up":    vy = -speed; break
-         case "down":  vy = speed;  break
-         case "left":  vx = -speed; break
-         case "right": vx = speed;  break
-      }
+            let directions = ["up","down","left","right"];
+            let opposite = {up:"down", down:"up", left:"right", right:"left"};
+            directions = directions.filter(dir => dir != ai.lastDirection ? true : false);
+            ai.wallDirection = directions[Math.floor(Math.random()*directions.length)];
+        } else {
+            ai.lastDirection = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+        }
+    }
+    else if (ai.mode === "wall") {
+        let vx = 0, vy = 0;
+        switch(ai.wallDirection){
+            case "up":    vy = -speed; break;
+            case "down":  vy = speed;  break;
+            case "left":  vx = -speed; break;
+            case "right": vx = speed;  break;
+        }
 
-      z.style.left = oldX + vx + "px"
-      z.style.top  = oldY + vy + "px"
+        z.style.left = zx + vx + "px";
+        z.style.top  = zy + vy + "px";
 
-      // Check if zombie can chase player again
-      let dxPlayer = px - parseFloat(z.style.left)
-      let dyPlayer = py - parseFloat(z.style.top)
-      if (!zombieHitWall(z) && Math.sqrt(dxPlayer*dxPlayer + dyPlayer*dyPlayer) > 0) {
-         ai.mode = "chase"
-      }
-   }
+        if (!zombieHitWall(z)) {
+            let bufferDist = Math.sqrt((px - (zx + vx))**2 + (py - (zy + vy))**2);
+            if (bufferDist > 50) ai.mode = "chase";
+        }
+    }
 
-   // Flip sprite to face player
-   z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)"
+    z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)";
 }
 </script>
 
