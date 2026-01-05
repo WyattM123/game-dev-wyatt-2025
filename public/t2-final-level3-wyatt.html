@@ -252,6 +252,19 @@ function checkAmmoPickup(){
    }
 }
 
+setInterval(function(){
+   moveZombieTowardPlayer("myImg02",2)
+   moveZombieTowardPlayer("myImg03",2.5)
+   moveZombieTowardPlayer("myImg06",6.5)
+
+   if (myImg02.style.display != "none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
+   if (myImg03.style.display != "none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
+   if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
+
+   checkAmmoPickup()
+   checkKeyPickup()
+}, 120)
+
 function moveZombieTowardPlayer(id, speed){
    let z = document.getElementById(id)
    if (z.style.display == "none") return
@@ -269,52 +282,48 @@ function moveZombieTowardPlayer(id, speed){
    let d = Math.sqrt(dx*dx + dy*dy)
    if (d < 1) return
 
-   let vx = Math.sign(dx) * speed
-   let vy = Math.sign(dy) * speed
+   if (ai.mode === "chase") {
+      // Move toward player
+      let vx = (dx / d) * speed
+      let vy = (dy / d) * speed
 
-   if (ai.mode === "chase"){
-      // try X move
       z.style.left = oldX + vx + "px"
-      if (zombieHitWall(z)){
-         z.style.left = oldX + "px"
+      z.style.top  = oldY + vy + "px"
+
+      if (zombieHitWall(z)) {
          ai.mode = "wall"
-         ai.side = Math.random() < 0.5 ? 1 : -1
-         return
+         let directions = ["up","down","left","right"]
+         let opposite = {up:"down", down:"up", left:"right", right:"left"}
+         directions = directions.filter(dir => dir != opposite[ai.lastDirection])
+         ai.wallDirection = directions[Math.floor(Math.random()*directions.length)]
+      } else {
+         ai.lastDirection = dx > 0 ? "right" : "left"
       }
-      // try Y move
-      z.style.top = oldY + vy + "px"
-      if (zombieHitWall(z)){
-         z.style.top = oldY + "px"
-         ai.mode = "wall"
-         ai.side = Math.random() < 0.5 ? 1 : -1
-         return
+   } 
+   else if (ai.mode === "wall") {
+      // Move in direction
+      let vx = 0, vy = 0
+      switch(ai.wallDirection){
+         case "up":    vy = -speed; break
+         case "down":  vy = speed;  break
+         case "left":  vx = -speed; break
+         case "right": vx = speed;  break
       }
-   } else if (ai.mode === "wall"){
-      let wx = ai.side === 1 ? speed : -speed
-      z.style.left = oldX + wx + "px"
-      if (!zombieHitWall(z)) return
-      z.style.left = oldX + "px"
-      z.style.top  = oldY + wx + "px"
-      if (!zombieHitWall(z)) return
-      z.style.top = oldY + "px"
-      ai.side *= -1
+
+      z.style.left = oldX + vx + "px"
+      z.style.top  = oldY + vy + "px"
+
+      // Check if zombie can chase player again
+      let dxPlayer = px - parseFloat(z.style.left)
+      let dyPlayer = py - parseFloat(z.style.top)
+      if (!zombieHitWall(z) && Math.sqrt(dxPlayer*dxPlayer + dyPlayer*dyPlayer) > 0) {
+         ai.mode = "chase"
+      }
    }
 
-   z.style.transform = dx > 0 ? "scaleX(-1)" : "scaleX(1)"
+   // Flip sprite to face player
+   z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)"
 }
-
-setInterval(function(){
-   moveZombieTowardPlayer("myImg02",2)
-   moveZombieTowardPlayer("myImg03",2.5)
-   moveZombieTowardPlayer("myImg06",6.5)
-
-   if (myImg02.style.display != "none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
-   if (myImg03.style.display != "none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
-   if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
-
-   checkAmmoPickup()
-   checkKeyPickup()
-}, 120)
 </script>
 
 <body
@@ -362,14 +371,24 @@ onkeydown="{
 <input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px;">
+   
 <img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px;">
+   
 <img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px;">
+   
 <img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px;">
+   
 <img id="myImg04" src="Exitdoor.gif" style="position:absolute;width:100px;height:80px;left:1500px;top:190px;">
+   
 <img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px;">
+   
 <img id="myImg07" src="Key.gif" style="position:absolute;width:100px;height:80px;display:none;">
+   
 <img id="myImg08" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
+   
 <img id="myImg10" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
+   
 <img id="myImg09" src="Banner.gif" style="position:absolute;width:400px;height:320px;left:800px;top:700px;">
+   
 <img id="myImg11" src="door.png" style="position:absolute;width:80px;height:100px;left:1290px;top:500px;">
 </body>
