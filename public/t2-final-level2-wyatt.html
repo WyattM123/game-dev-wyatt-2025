@@ -1,4 +1,5 @@
 <h1>t2-final-level2-wyatt.html</h1>
+<b style="color:green; background-color:darkgreen;">Objective: Grab ammo, kill the zombies, and save the civilian</b>
 
 <script>
 
@@ -84,10 +85,17 @@ function spawnHitParticle(x,y){
 }
 
 function checkExitDoor(){
-   if (myHitOther(document.getElementById('myImg01'),document.getElementById('myImg04'))){
-      document.all.myText01.value = "Made it out... For now"
-      alert("Next level")
-      location = "t2-final-level3-wyatt.html"
+   let zombie2Alive = document.getElementById('myImg02').style.display != "none";
+   let zombie3Alive = document.getElementById('myImg03').style.display != "none";
+
+   if (myHitOther(document.getElementById('myImg01'), document.getElementById('myImg04'))) {
+       if (!zombie2Alive && !zombie3Alive) {
+           document.all.myText01.value = "Made it out... For now";
+           alert("Next level");
+           location = "t2-final-level3-wyatt.html";
+       } else {
+           document.all.myText01.value = "Complete the objective before skedaddling";
+       }
    }
 }
 
@@ -191,44 +199,104 @@ function checkAmmoPickup(){
    }
 }
 
+function moveScaredGuy() {
+    let guy = document.getElementById("myImg06");
+    let zx1 = parseFloat(document.getElementById("myImg02").style.left);
+    let zy1 = parseFloat(document.getElementById("myImg02").style.top);
+    let zx2 = parseFloat(document.getElementById("myImg03").style.left);
+    let zy2 = parseFloat(document.getElementById("myImg03").style.top);
+    
+    let gx = parseFloat(guy.style.left);
+    let gy = parseFloat(guy.style.top);
+
+    let dx = (Math.random() - 0.5) * 4;
+    let dy = (Math.random() - 0.5) * 4;
+
+    if (document.getElementById("myImg02").style.display != "none") {
+        let diffX = gx - zx1;
+        let diffY = gy - zy1;
+        let dist = Math.sqrt(diffX*diffX + diffY*diffY);
+        if (dist < 200) {  // if zombie too close
+            dx += diffX / dist * 3; // run away faster
+            dy += diffY / dist * 3;
+        }
+    }
+    if (document.getElementById("myImg03").style.display != "none") {
+        let diffX = gx - zx2;
+        let diffY = gy - zy2;
+        let dist = Math.sqrt(diffX*diffX + diffY*diffY);
+        if (dist < 200) {
+            dx += diffX / dist * 3;
+            dy += diffY / dist * 3;
+        }
+    }
+
+    // this is what keeps the crumbgeek inbounds so dont delete this
+    gx = Math.min(Math.max(gx + dx, 0), window.innerWidth - 80);
+    gy = Math.min(Math.max(gy + dy, 0), window.innerHeight - 80);
+
+    guy.style.left = gx + "px";
+    guy.style.top  = gy + "px";
+}
+
 setInterval(function(){
-   moveZombieTowardPlayer("myImg02", 4)
-   moveZombieTowardPlayer("myImg03", 4.5)
+   moveZombieTowardTarget("myImg02", 4);
+   moveZombieTowardTarget("myImg03", 4.5);
+
+   moveScaredGuy();
 
    if (document.getElementById('myImg02').style.display != "none" &&
        myHitOther(document.getElementById("myImg01"),document.getElementById('myImg02')))
-       playerTakeDamage()
+       playerTakeDamage();
 
    if (document.getElementById('myImg03').style.display != "none" &&
        myHitOther(document.getElementById("myImg01"),document.getElementById('myImg03')))
-       playerTakeDamage()
+       playerTakeDamage();
 
-   checkAmmoPickup()
-}, 120)
+   checkAmmoPickup();
+}, 120);
 
-function moveZombieTowardPlayer(id, speed){
-   let z = document.getElementById(id)
-   if (z.style.display == "none") return
+function moveZombieTowardTarget(id, speed){
+    let z = document.getElementById(id);
+    if (z.style.display == "none") return;
 
-   let zx = parseFloat(z.style.left)
-   let zy = parseFloat(z.style.top)
+    let zx = parseFloat(z.style.left);
+    let zy = parseFloat(z.style.top);
 
-   let px = parseFloat(myImg01.style.left)
-   let py = parseFloat(myImg01.style.top)
+    let px = parseFloat(myImg01.style.left);
+    let py = parseFloat(myImg01.style.top);
 
-   let dx = px - zx
-   let dy = py - zy
-   let d = Math.sqrt(dx*dx + dy*dy)
-   if (d < 1) return
+    let gx = parseFloat(myImg06.style.left);
+    let gy = parseFloat(myImg06.style.top);
 
-   z.style.left = zx + (dx / d) * speed + "px"
-   z.style.top  = zy + (dy / d) * speed + "px"
+    let dxPlayer = px - zx;
+    let dyPlayer = py - zy;
+    let distPlayer = Math.sqrt(dxPlayer*dxPlayer + dyPlayer*dyPlayer);
 
-   if (dx > 0){
-      z.style.transform = "scaleX(-1)"
-   } else {
-      z.style.transform = "scaleX(1)"
-   }
+    let dxGuy = gx - zx;
+    let dyGuy = gy - zy;
+    let distGuy = Math.sqrt(dxGuy*dxGuy + dyGuy*dyGuy);
+
+    let targetDx = dxPlayer;
+    let targetDy = dyPlayer;
+
+    if (document.getElementById("myImg06").style.display != "none" && distGuy < distPlayer) {
+        targetDx = dxGuy;
+        targetDy = dyGuy;
+    }
+
+    let d = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+    if (d < 1) return;
+
+    z.style.left = zx + (targetDx / d) * speed + "px";
+    z.style.top  = zy + (targetDy / d) * speed + "px";
+
+    // Flip zombie
+    if (targetDx > 0){
+        z.style.transform = "scaleX(-1)";
+    } else {
+        z.style.transform = "scaleX(1)";
+    }
 }
 
 </script>
@@ -307,6 +375,9 @@ left:-200px; top:-200px; display:none; z-index:9999;">
 </div>
 
 <img id="myImg05" src="Ammunition1.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:600px;">
+
+<img id="myImg06" src="Scaredguy1.gif"
 style="position:absolute; width:100px; height:80px; left:500px; top:600px;">
 
 </body>
