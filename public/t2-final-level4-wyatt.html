@@ -32,6 +32,15 @@ let zombieAI = {
    myImg06: { mode: "chase", side: 1 }
 }
 
+let zombieTemplates = [
+   { img: "Zombie1.gif", hp: 2, speed: 2, damage: 1, cooldown: 1000 },
+   { img: "Zombie2.gif", hp: 2, speed: 2.5, damage: 1, cooldown: 1500 },
+   { img: "Zombie3.gif", hp: 1, speed: 6.5, damage: 2, cooldown: 2000 }
+]
+
+let zombieClones = {}
+let zombieCloneCounter = 0
+
 let lastPlayerLeft = 10
 let lastPlayerTop  = 190
 
@@ -68,12 +77,7 @@ function zombieAttack(zombieID){
 function myHitOther(el1, el2){
    let A = el1.getBoundingClientRect()
    let B = el2.getBoundingClientRect()
-   return !(
-      A.right < B.left ||
-      A.left > B.right ||
-      A.bottom < B.top ||
-      A.top > B.bottom
-   )
+   return !(A.right < B.left || A.left > B.right || A.bottom < B.top || A.top > B.bottom)
 }
 
 function spawnHitParticle(x,y){
@@ -99,25 +103,18 @@ function spawnHitParticle(x,y){
 }
 
 function blockPlayerIfHit(){
-   if (
-      myHitOther(myImg01, myImg08) ||
-      myHitOther(myImg01, myImg10)
-   ){
+   if (myHitOther(myImg01, myImg08) || myHitOther(myImg01, myImg10)){
       myImg01.style.left = lastPlayerLeft + "px"
       myImg01.style.top  = lastPlayerTop  + "px"
    }
 }
 
 function zombieHitWall(zombie){
-   return (
-      myHitOther(zombie, myImg08) ||
-      myHitOther(zombie, myImg10)
-   )
+   return myHitOther(zombie, myImg08) || myHitOther(zombie, myImg10)
 }
 
 function checkExitDoor(){
    if (myHitOther(myImg01,myImg04)){
-      document.all.myText01.value = "Made it out... For now"
       alert("Next level")
       location = "https://www.google.ca"
    }
@@ -131,10 +128,7 @@ function hitZombie(zombieID, hpVarName){
    window[hpVarName]--
 
    if (window[hpVarName] <= 0){
-      document.all.myText01.value = zombieID + " shot dead"
       z.style.display = "none"
-   } else {
-      document.all.myText01.value = zombieID + " shot"
    }
 }
 
@@ -159,70 +153,71 @@ function fireBullet(){
 
    b.style.left = gx + 45 + "px"
    b.style.top  = gy + 35 + "px"
-
    document.body.appendChild(b)
 
-   let dx = 0, dy = 0
-   if (lastDirection == "right") dx = 10
-   if (lastDirection == "left")  dx = -10
-   if (lastDirection == "up")    dy = -10
-   if (lastDirection == "down")  dy = 10
+   let dx=0, dy=0
+   if (lastDirection=="right") dx=10
+   if (lastDirection=="left") dx=-10
+   if (lastDirection=="up") dy=-10
+   if (lastDirection=="down") dy=10
 
-   let bulletObj = {el: b, dx: dx, dy: dy, interval: null}
+   let bulletObj = {el:b, dx, dy, interval:null}
 
    bulletObj.interval = setInterval(() => {
-      let bx = parseInt(b.style.left) + dx
-      let by = parseInt(b.style.top) + dy
-      b.style.left = bx + "px"
-      b.style.top  = by + "px"
+      b.style.left = parseInt(b.style.left)+dx+"px"
+      b.style.top  = parseInt(b.style.top)+dy+"px"
 
-      if (myImg02.style.display != "none" && myHitOther(b,myImg02)){
-         hitZombie("myImg02","zombie1HP")
-         removeBullet(bulletObj)
-      }
-      if (myImg03.style.display != "none" && myHitOther(b,myImg03)){
-         hitZombie("myImg03","zombie2HP")
-         removeBullet(bulletObj)
-      }
-      if (myImg06.style.display != "none" && myHitOther(b,myImg06)){
-         hitZombie("myImg06","zombie3HP")
-         removeBullet(bulletObj)
+      if (myImg02.style.display!="none" && myHitOther(b,myImg02)){ hitZombie("myImg02","zombie1HP"); removeBullet(bulletObj) }
+      if (myImg03.style.display!="none" && myHitOther(b,myImg03)){ hitZombie("myImg03","zombie2HP"); removeBullet(bulletObj) }
+      if (myImg06.style.display!="none" && myHitOther(b,myImg06)){ hitZombie("myImg06","zombie3HP"); removeBullet(bulletObj) }
+
+      for (let id in zombieClones){
+         let z = document.getElementById(id)
+         if (z && myHitOther(b,z)){
+            zombieClones[id].hp--
+            let r = z.getBoundingClientRect()
+            spawnHitParticle(r.left+40, r.top+30)
+            if (zombieClones[id].hp <= 0){
+               z.remove()
+               delete zombieClones[id]
+            }
+            removeBullet(bulletObj)
+            break
+         }
       }
 
-      if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
-         removeBullet(bulletObj)
-      }
-      if (myImg08.style.display != "none" && myHitOther(b,myImg08)) removeBullet(bulletObj)
-      if (myImg10.style.display != "none" && myHitOther(b,myImg10)) removeBullet(bulletObj)
-   }, 20)
-
-   bullets.push(bulletObj)
+   },20)
 }
 
-function removeBullet(bulletObj){
-   clearInterval(bulletObj.interval)
-   bulletObj.el.remove()
-   bullets = bullets.filter(b => b !== bulletObj)
+function removeBullet(b){ clearInterval(b.interval); b.el.remove() }
+
+function getRandomOffscreenPosition(){
+   let w=window.innerWidth, h=window.innerHeight
+   let x,y
+   do{
+      x=Math.random()*(w+400)-200
+      y=Math.random()*(h+400)-200
+   }while(x>0&&x<w&&y>0&&y<h)
+   return {x,y}
 }
 
-function randomizeZombiePositions(){
-   let minX = 200, maxX = 800
-   let minY = 100, maxY = 400
+function spawnZombieClone(){
+   let t = zombieTemplates[Math.floor(Math.random()*zombieTemplates.length)]
+   let p = getRandomOffscreenPosition()
+   let z = document.createElement("img")
+   let id = "zombieClone"+zombieCloneCounter++
 
-   ;["myImg02","myImg03","myImg06"].forEach(id => {
-      let z = document.getElementById(id)
-      z.style.left = Math.random()*(maxX-minX)+minX+"px"
-      z.style.top  = Math.random()*(maxY-minY)+minY+"px"
-   })
-}
+   z.id=id
+   z.src=t.img
+   z.style.position="absolute"
+   z.style.width="100px"
+   z.style.height="80px"
+   z.style.left=p.x+"px"
+   z.style.top=p.y+"px"
+   z.style.zIndex=3
+   document.body.appendChild(z)
 
-function checkAmmoPickup(){
-   if (myImg05.style.display != "none" && myHitOther(myImg01,myImg05)){
-      ammo = Math.min(ammo + 6, maxAmmo)
-      updateAmmoDisplay()
-      myImg05.style.display = "none"
-      document.all.myText01.value = "Picked up ammo"
-   }
+   zombieClones[id]={hp:t.hp,speed:t.speed,damage:t.damage,cooldown:t.cooldown,canAttack:true}
 }
 
 setInterval(function(){
@@ -230,111 +225,60 @@ setInterval(function(){
    moveZombieTowardPlayer("myImg03",2.5)
    moveZombieTowardPlayer("myImg06",6.5)
 
-   if (myImg02.style.display != "none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
-   if (myImg03.style.display != "none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
-   if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
+   if (myImg02.style.display!="none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
+   if (myImg03.style.display!="none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
+   if (myImg06.style.display!="none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
 
-   checkAmmoPickup()
-}, 120)
+   for (let id in zombieClones){
+      let z=document.getElementById(id)
+      let d=zombieClones[id]
+      if(!z) continue
 
-function moveZombieTowardPlayer(id, speed) {
-    let z = document.getElementById(id);
-    if (z.style.display === "none") return;
+      let zx=parseFloat(z.style.left), zy=parseFloat(z.style.top)
+      let px=parseFloat(myImg01.style.left), py=parseFloat(myImg01.style.top)
+      let dx=px-zx, dy=py-zy
+      let dist=Math.sqrt(dx*dx+dy*dy)
+      if(dist<1) continue
 
-    let ai = zombieAI[id];
-    let zx = parseFloat(z.style.left);
-    let zy = parseFloat(z.style.top);
-    let px = parseFloat(myImg01.style.left);
-    let py = parseFloat(myImg01.style.top);
+      z.style.left=zx+(dx/dist)*d.speed+"px"
+      z.style.top =zy+(dy/dist)*d.speed+"px"
+      z.style.transform=(px-zx)>0?"scaleX(-1)":"scaleX(1)"
 
-    let dx = px - zx;
-    let dy = py - zy;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < 1) return;
+      if(myHitOther(myImg01,z)&&d.canAttack){
+         playerTakeDamage(d.damage)
+         d.canAttack=false
+         setTimeout(()=>d.canAttack=true,d.cooldown)
+      }
+   }
 
-    if (ai.mode === "chase") {
-        let vx = (dx / dist) * speed;
-        let vy = (dy / dist) * speed;
+},120)
 
-        z.style.left = zx + vx + "px";
-        z.style.top  = zy + vy + "px";
-
-        if (zombieHitWall(z)) {
-            ai.mode = "wall";
-            let directions = ["up","down","left","right"];
-            ai.wallDirection = directions[Math.floor(Math.random()*directions.length)];
-        }
-    } else {
-        let vx = 0, vy = 0;
-        if (ai.wallDirection === "up") vy = -speed;
-        if (ai.wallDirection === "down") vy = speed;
-        if (ai.wallDirection === "left") vx = -speed;
-        if (ai.wallDirection === "right") vx = speed;
-
-        z.style.left = zx + vx + "px";
-        z.style.top  = zy + vy + "px";
-
-        if (!zombieHitWall(z)) ai.mode = "chase";
-    }
-
-    z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)";
-}
+setInterval(spawnZombieClone,4000)
 </script>
 
 <body
-id="myBody"
-style="background-repeat:repeat; background-size:20%"
-background="Background2.gif"
-onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions();"
-
+onload="updateHealthDisplay(); updateAmmoDisplay();"
 onkeydown="{
-   lastPlayerLeft = parseInt(myImg01.style.left)
-   lastPlayerTop  = parseInt(myImg01.style.top)
+   lastPlayerLeft=parseInt(myImg01.style.left)
+   lastPlayerTop=parseInt(myImg01.style.top)
 
-   if (event.code == 'Space') {
-      event.preventDefault()
-      fireBullet()
-   }
-
-   if (event.key == 'd') {
-      lastDirection='right'
-      myImg01.style.transform = 'scaleX(1)'
-      myImg01.style.left = lastPlayerLeft + 10 + 'px'
-   }
-   if (event.key == 'a') {
-      lastDirection='left'
-      myImg01.style.transform = 'scaleX(-1)'
-      myImg01.style.left = lastPlayerLeft - 10 + 'px'
-   }
-   if (event.key == 's') {
-      lastDirection='down'
-      myImg01.style.top = lastPlayerTop + 10 + 'px'
-   }
-   if (event.key == 'w') {
-      lastDirection='up'
-      myImg01.style.top = lastPlayerTop - 10 + 'px'
-   }
+   if(event.code=='Space'){event.preventDefault();fireBullet()}
+   if(event.key=='d'){lastDirection='right';myImg01.style.left=lastPlayerLeft+10+'px'}
+   if(event.key=='a'){lastDirection='left';myImg01.style.left=lastPlayerLeft-10+'px'}
+   if(event.key=='s'){lastDirection='down';myImg01.style.top=lastPlayerTop+10+'px'}
+   if(event.key=='w'){lastDirection='up';myImg01.style.top=lastPlayerTop-10+'px'}
 
    blockPlayerIfHit()
-   checkExitDoor()
 }">
+<div id="healthDisplay"></div>
+<div id="ammoDisplay"></div>
 
-<div id="healthDisplay" style="font-size:24px;font-weight:bold;color:red;"></div>
-<div id="ammoDisplay" style="font-size:24px;font-weight:bold;color:orange;"></div>
-
-<input id="myText01" type=text size=50 placeholder="Feedback here"><br>
-<input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
-
-<img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px; z-index:2">
-
-<img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-<img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-<img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px; z-index:3">
+<img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px;">
+<img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px;">
+<img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px;">
+<img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px;">
 
 <img id="myImg04" src="Exitdoor.gif" style="position:absolute;width:100px;height:80px;left:1500px;top:190px;">
-<img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px; z-index:1">
-
 <img id="myImg08" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
 <img id="myImg10" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
-
 </body>
