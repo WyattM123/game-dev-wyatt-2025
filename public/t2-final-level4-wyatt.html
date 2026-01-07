@@ -1,5 +1,5 @@
-<h1>t2-final-level3-wyatt.html</h1>
-<b style="color:green; background-color:darkgreen;">Objective: Find Key then leave</b>
+<h1>t2-final-level4-wyatt.html</h1>
+<b style="color:green; background-color:darkgreen;">Objective: Survive the onslaught</b>
 
 <script>
 let myGlobalX = 0
@@ -17,7 +17,7 @@ var zombie3HP = 1 // fast
 
 let playerHP = 10
 
-let ammo = 3
+let ammo = 12
 let maxAmmo = 24
 
 let zombies = {
@@ -31,9 +31,6 @@ let zombieAI = {
    myImg03: { mode: "chase", side: -1 },
    myImg06: { mode: "chase", side: 1 }
 }
-
-let keyDropped = false
-let keyZombieID = ["myImg02","myImg03","myImg06"][Math.floor(Math.random()*3)]
 
 let lastPlayerLeft = 10
 let lastPlayerTop  = 190
@@ -136,18 +133,12 @@ function hitZombie(zombieID, hpVarName){
    window[hpVarName]--
 
    if (window[hpVarName] <= 0){
-      if (zombieID === keyZombieID){
-         spawnKey(rect.left + 30, rect.top + 30)
-         document.all.myText01.value = zombieID + " had a key on him"
-      } else {
-         document.all.myText01.value = zombieID + " shot dead"
-      }
+      document.all.myText01.value = zombieID + " shot dead"
       z.style.display = "none"
    } else {
       document.all.myText01.value = zombieID + " shot"
    }
 }
-
 function fireBullet(){
    if (!canShoot || ammo <= 0) return
 
@@ -363,8 +354,8 @@ onkeydown="{
    
 <img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px; z-index:1">
    
-<img id="myImg08" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
+<img id="myImg08" src="Wall.png" style="position:absolute;width:50px;height:250px;left:1000px;top:0px;">
    
-<img id="myImg10" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
+<img id="myImg10" src="Wall.png" style="position:absolute;width:50px;height:250px;left:300px;top:600px;">
 
 </body>
