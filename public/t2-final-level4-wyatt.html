@@ -11,9 +11,9 @@ let canShoot = true
 let shootCooldown = 400
 let bullets = []
 
-var zombie1HP = 2 // normal
-var zombie2HP = 2 // normal
-var zombie3HP = 1 // fast
+var zombie1HP = 2
+var zombie2HP = 2
+var zombie3HP = 1
 
 let playerHP = 10
 
@@ -32,27 +32,8 @@ let zombieAI = {
    myImg06: { mode: "chase", side: 1 }
 }
 
-let keyDropped = false
-let keyZombieID = ["myImg02","myImg03","myImg06"][Math.floor(Math.random()*3)]
-
 let lastPlayerLeft = 10
 let lastPlayerTop  = 190
-
-function spawnKey(x, y){
-   if (keyDropped) return
-   keyDropped = true
-   myImg07.style.left = x + "px"
-   myImg07.style.top  = y + "px"
-   myImg07.style.display = "block"
-}
-
-function checkKeyPickup(){
-   if (myImg07.style.display != "none" && myHitOther(myImg01, myImg07)){
-      myImg07.style.display = "none"
-      myImg11.style.display = "none"
-      document.all.myText01.value = "Da door unlocked"
-   }
-}
 
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
@@ -120,8 +101,7 @@ function spawnHitParticle(x,y){
 function blockPlayerIfHit(){
    if (
       myHitOther(myImg01, myImg08) ||
-      myHitOther(myImg01, myImg10) ||
-      myHitOther(myImg01, myImg11)
+      myHitOther(myImg01, myImg10)
    ){
       myImg01.style.left = lastPlayerLeft + "px"
       myImg01.style.top  = lastPlayerTop  + "px"
@@ -131,8 +111,7 @@ function blockPlayerIfHit(){
 function zombieHitWall(zombie){
    return (
       myHitOther(zombie, myImg08) ||
-      myHitOther(zombie, myImg10) ||
-      myHitOther(zombie, myImg11)
+      myHitOther(zombie, myImg10)
    )
 }
 
@@ -152,12 +131,7 @@ function hitZombie(zombieID, hpVarName){
    window[hpVarName]--
 
    if (window[hpVarName] <= 0){
-      if (zombieID === keyZombieID){
-         spawnKey(rect.left + 30, rect.top + 30)
-         document.all.myText01.value = zombieID + " had a key on him"
-      } else {
-         document.all.myText01.value = zombieID + " shot dead"
-      }
+      document.all.myText01.value = zombieID + " shot dead"
       z.style.display = "none"
    } else {
       document.all.myText01.value = zombieID + " shot"
@@ -220,7 +194,6 @@ function fireBullet(){
       }
       if (myImg08.style.display != "none" && myHitOther(b,myImg08)) removeBullet(bulletObj)
       if (myImg10.style.display != "none" && myHitOther(b,myImg10)) removeBullet(bulletObj)
-      if (myImg11.style.display != "none" && myHitOther(b,myImg11)) removeBullet(bulletObj)
    }, 20)
 
    bullets.push(bulletObj)
@@ -262,16 +235,13 @@ setInterval(function(){
    if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
 
    checkAmmoPickup()
-   checkKeyPickup()
 }, 120)
 
 function moveZombieTowardPlayer(id, speed) {
     let z = document.getElementById(id);
-    if (z.style.display === "none") return; // dead zombie
+    if (z.style.display === "none") return;
 
     let ai = zombieAI[id];
-
-    // Get current positions
     let zx = parseFloat(z.style.left);
     let zy = parseFloat(z.style.top);
     let px = parseFloat(myImg01.style.left);
@@ -283,41 +253,28 @@ function moveZombieTowardPlayer(id, speed) {
     if (dist < 1) return;
 
     if (ai.mode === "chase") {
-        // Move toward player
         let vx = (dx / dist) * speed;
         let vy = (dy / dist) * speed;
 
         z.style.left = zx + vx + "px";
         z.style.top  = zy + vy + "px";
 
-        //wall collision
         if (zombieHitWall(z)) {
             ai.mode = "wall";
-
             let directions = ["up","down","left","right"];
-            let opposite = {up:"down", down:"up", left:"right", right:"left"};
-            directions = directions.filter(dir => dir != ai.lastDirection ? true : false);
             ai.wallDirection = directions[Math.floor(Math.random()*directions.length)];
-        } else {
-            ai.lastDirection = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
         }
-    }
-    else if (ai.mode === "wall") {
+    } else {
         let vx = 0, vy = 0;
-        switch(ai.wallDirection){
-            case "up":    vy = -speed; break;
-            case "down":  vy = speed;  break;
-            case "left":  vx = -speed; break;
-            case "right": vx = speed;  break;
-        }
+        if (ai.wallDirection === "up") vy = -speed;
+        if (ai.wallDirection === "down") vy = speed;
+        if (ai.wallDirection === "left") vx = -speed;
+        if (ai.wallDirection === "right") vx = speed;
 
         z.style.left = zx + vx + "px";
         z.style.top  = zy + vy + "px";
 
-        if (!zombieHitWall(z)) {
-            let bufferDist = Math.sqrt((px - (zx + vx))**2 + (py - (zy + vy))**2);
-            if (bufferDist > 50) ai.mode = "chase";
-        }
+        if (!zombieHitWall(z)) ai.mode = "chase";
     }
 
     z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)";
@@ -369,24 +326,15 @@ onkeydown="{
 <input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px; z-index:2">
-   
+
 <img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
 <img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
 <img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
+
 <img id="myImg04" src="Exitdoor.gif" style="position:absolute;width:100px;height:80px;left:1500px;top:190px;">
-   
 <img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px; z-index:1">
-   
-<img id="myImg07" src="Key.gif" style="position:absolute;width:100px;height:80px;display:none;">
-   
-<img id="myImg08" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
-   
-<img id="myImg10" src="Lightwall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
-   
-<img id="myImg09" src="Banner.gif" style="position:absolute;width:400px;height:320px;left:800px;top:700px; z-index:1">
-   
-<img id="myImg11" src="door.png" style="position:absolute;width:80px;height:100px;left:1290px;top:500px;">
+
+<img id="myImg08" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:0px;">
+<img id="myImg10" src="Wall.png" style="position:absolute;width:50px;height:500px;left:1300px;top:600px;">
+
 </body>
