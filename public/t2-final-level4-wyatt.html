@@ -2,6 +2,7 @@
 <b style="color:green; background-color:darkgreen;">Objective: Survive the onslaught</b>
 
 <script>
+
 let myGlobalX = 0
 let myClock
 let myScore = 10
@@ -11,29 +12,14 @@ let canShoot = true
 let shootCooldown = 400
 let bullets = []
 
-var zombie1HP = 2 // normal
-var zombie2HP = 2 // normal
-var zombie3HP = 1 // fast
+var zombie1HP = 2
+var zombie2HP = 2
 
 let playerHP = 10
+let canTakeDamage = true
 
-let ammo = 12
+let ammo = 2
 let maxAmmo = 24
-
-let zombies = {
-   myImg02: { damage: 1, cooldown: 1000, canAttack: true },
-   myImg03: { damage: 1, cooldown: 1500, canAttack: true },
-   myImg06: { damage: 2, cooldown: 2000, canAttack: true }
-}
-
-let zombieAI = {
-   myImg02: { mode: "chase", side: 1 },
-   myImg03: { mode: "chase", side: -1 },
-   myImg06: { mode: "chase", side: 1 }
-}
-
-let lastPlayerLeft = 10
-let lastPlayerTop  = 190
 
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
@@ -43,26 +29,24 @@ function updateAmmoDisplay(){
    document.getElementById("ammoDisplay").innerHTML = "Ammo: " + ammo + " / " + maxAmmo
 }
 
-function playerTakeDamage(amount){
-   playerHP -= amount
-   updateHealthDisplay()
+function playerTakeDamage(){
+   if (!canTakeDamage) return
 
-   let r = myImg01.getBoundingClientRect()
+   playerHP -= 1
+   updateHealthDisplay()
+   canTakeDamage = false
+
+   let r = document.getElementById("myImg01").getBoundingClientRect()
    spawnHitParticle(r.left + 40, r.top + 30)
+
+   setTimeout(function(){
+      canTakeDamage = true
+   }, 1000)
 
    if (playerHP <= 0){
       alert("Game Over")
       location.reload()
    }
-}
-
-function zombieAttack(zombieID){
-   let zData = zombies[zombieID]
-   if (!zData || !zData.canAttack) return
-
-   playerTakeDamage(zData.damage)
-   zData.canAttack = false
-   setTimeout(() => zData.canAttack = true, zData.cooldown)
 }
 
 function myHitOther(el1, el2){
@@ -90,128 +74,115 @@ function spawnHitParticle(x,y){
    p.style.transition = "opacity 0.4s ease-out, transform 0.4s ease-out"
    document.body.appendChild(p)
 
-   setTimeout(() => {
+   setTimeout(function(){
       p.style.opacity = "0"
       p.style.transform = "scale(2)"
    }, 10)
 
-   setTimeout(() => p.remove(), 450)
-}
-
-function blockPlayerIfHit(){
-   if (
-      myHitOther(myImg01, myImg08) ||
-      myHitOther(myImg01, myImg10) ||
-      myHitOther(myImg01, myImg11)
-   ){
-      myImg01.style.left = lastPlayerLeft + "px"
-      myImg01.style.top  = lastPlayerTop  + "px"
-   }
-}
-
-function zombieHitWall(zombie){
-   return (
-      myHitOther(zombie, myImg08) ||
-      myHitOther(zombie, myImg10) ||
-      myHitOther(zombie, myImg11)
-   )
+   setTimeout(function(){
+      p.remove()
+   }, 450)
 }
 
 function checkExitDoor(){
-   if (myHitOther(myImg01,myImg04)){
-      document.all.myText01.value = "Made it out... For now"
-      alert("Next level")
-      location = "t2-final-level4-wyatt.html"
+   let zombie2Alive = document.getElementById('myImg02').style.display != "none";
+   let zombie3Alive = document.getElementById('myImg03').style.display != "none";
+
+   if (myHitOther(document.getElementById('myImg01'), document.getElementById('myImg04'))) {
+       if (!zombie2Alive && !zombie3Alive) {
+           document.all.myText01.value = "Made it out... For now";
+           alert("Next level");
+           location = "t2-final-level3-wyatt.html";
+       } else {
+           document.all.myText01.value = "Complete the objective before skedaddling";
+       }
    }
 }
+
 
 function hitZombie(zombieID, hpVarName){
    let z = document.getElementById(zombieID)
    let rect = z.getBoundingClientRect()
    spawnHitParticle(rect.left + 40, rect.top + 30)
 
-   window[hpVarName]--
+   window[hpVarName] -= 1
 
    if (window[hpVarName] <= 0){
-      document.all.myText01.value = zombieID + " shot dead"
       z.style.display = "none"
+      document.all.myText01.value = zombieID + " shot dead"
    } else {
       document.all.myText01.value = zombieID + " shot"
    }
 }
-function fireBullet(){
-   if (!canShoot || ammo <= 0) return
 
-   ammo--
-   updateAmmoDisplay()
+function fireBullet() {
+    if (!canShoot || ammo <= 0) return;
 
-   canShoot = false
-   setTimeout(() => canShoot = true, shootCooldown)
+    ammo -= 1;
+    updateAmmoDisplay();
 
-   let b = document.createElement("div")
-   b.style.position = "absolute"
-   b.style.width = "12px"
-   b.style.height = "12px"
-   b.style.background = "yellow"
-   b.style.zIndex = 9999
+    canShoot = false;
+    setTimeout(() => canShoot = true, shootCooldown);
 
-   let gx = parseInt(myImg01.style.left)
-   let gy = parseInt(myImg01.style.top)
+    let b = document.createElement("div");
+    b.style.position = "absolute";
+    b.style.width = "12px";
+    b.style.height = "12px";
+    b.style.background = "yellow";
+    b.style.zIndex = 9999;
 
-   b.style.left = gx + 45 + "px"
-   b.style.top  = gy + 35 + "px"
+    let g = document.getElementById('myImg01');
+    let gx = parseInt(g.style.left)
+    let gy = parseInt(g.style.top)
 
-   document.body.appendChild(b)
+    b.style.left = gx + 45 + "px";
+    b.style.top  = gy + 35 + "px";
 
-   let dx = 0, dy = 0
-   if (lastDirection == "right") dx = 10
-   if (lastDirection == "left")  dx = -10
-   if (lastDirection == "up")    dy = -10
-   if (lastDirection == "down")  dy = 10
+    document.body.appendChild(b);
 
-   let bulletObj = {el: b, dx: dx, dy: dy, interval: null}
+    let dx = 0, dy = 0;
+    if (lastDirection == "right") dx = 10;
+    if (lastDirection == "left")  dx = -10;
+    if (lastDirection == "up")    dy = -10;
+    if (lastDirection == "down")  dy = 10;
 
-   bulletObj.interval = setInterval(() => {
-      let bx = parseInt(b.style.left) + dx
-      let by = parseInt(b.style.top) + dy
-      b.style.left = bx + "px"
-      b.style.top  = by + "px"
+    let bulletObj = {el: b, dx: dx, dy: dy, interval: null};
 
-      if (myImg02.style.display != "none" && myHitOther(b,myImg02)){
-         hitZombie("myImg02","zombie1HP")
-         removeBullet(bulletObj)
-      }
-      if (myImg03.style.display != "none" && myHitOther(b,myImg03)){
-         hitZombie("myImg03","zombie2HP")
-         removeBullet(bulletObj)
-      }
-      if (myImg06.style.display != "none" && myHitOther(b,myImg06)){
-         hitZombie("myImg06","zombie3HP")
-         removeBullet(bulletObj)
-      }
+    bulletObj.interval = setInterval(() => {
+        let bx = parseInt(b.style.left) + bulletObj.dx;
+        let by = parseInt(b.style.top) + bulletObj.dy;
+        b.style.left = bx + "px";
+        b.style.top  = by + "px";
 
-      if (bx < -20 || bx > 2000 || by < -20 || by > 2000){
-         removeBullet(bulletObj)
-      }
-      if (myImg08.style.display != "none" && myHitOther(b,myImg08)) removeBullet(bulletObj)
-      if (myImg10.style.display != "none" && myHitOther(b,myImg10)) removeBullet(bulletObj)
-      if (myImg11.style.display != "none" && myHitOther(b,myImg11)) removeBullet(bulletObj)
-   }, 20)
+        if (document.getElementById('myImg02').style.display != "none" && myHitOther(b, document.getElementById('myImg02'))) {
+            hitZombie("myImg02", "zombie1HP");
+            removeBullet(bulletObj);
+        }
 
-   bullets.push(bulletObj)
+        if (document.getElementById('myImg03').style.display != "none" && myHitOther(b, document.getElementById('myImg03'))) {
+            hitZombie("myImg03", "zombie2HP");
+            removeBullet(bulletObj);
+        }
+
+        if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
+            removeBullet(bulletObj);
+        }
+    }, 20);
+
+    bullets.push(bulletObj);
 }
 
-function removeBullet(bulletObj){
-   clearInterval(bulletObj.interval)
-   bulletObj.el.remove()
-   bullets = bullets.filter(b => b !== bulletObj)
+function removeBullet(bulletObj) {
+    clearInterval(bulletObj.interval);
+    bulletObj.el.remove();
+    bullets = bullets.filter(b => b !== bulletObj);
 }
 
 function randomizeZombiePositions(){
    let minX = 200, maxX = 800
    let minY = 100, maxY = 400
 
-   ;["myImg02","myImg03","myImg06"].forEach(id => {
+   ;["myImg02","myImg03"].forEach(id=>{
       let z = document.getElementById(id)
       z.style.left = Math.random()*(maxX-minX)+minX+"px"
       z.style.top  = Math.random()*(maxY-minY)+minY+"px"
@@ -219,89 +190,118 @@ function randomizeZombiePositions(){
 }
 
 function checkAmmoPickup(){
-   if (myImg05.style.display != "none" && myHitOther(myImg01,myImg05)){
+   let a = document.getElementById("myImg05")
+   if (a.style.display !== "none" && myHitOther(document.getElementById("myImg01"),a)){
       ammo = Math.min(ammo + 6, maxAmmo)
       updateAmmoDisplay()
-      myImg05.style.display = "none"
-      document.all.myText01.value = "Picked up ammo"
+      a.style.display = "none"
+      document.all.myText01.value = "Picked up ammo!"
    }
 }
 
+function moveScaredGuy() {
+    let guy = document.getElementById("myImg06");
+    let zx1 = parseFloat(document.getElementById("myImg02").style.left);
+    let zy1 = parseFloat(document.getElementById("myImg02").style.top);
+    let zx2 = parseFloat(document.getElementById("myImg03").style.left);
+    let zy2 = parseFloat(document.getElementById("myImg03").style.top);
+    
+    let gx = parseFloat(guy.style.left);
+    let gy = parseFloat(guy.style.top);
+
+    let dx = (Math.random() - 0.5) * 4;
+    let dy = (Math.random() - 0.5) * 4;
+
+    if (document.getElementById("myImg02").style.display != "none") {
+        let diffX = gx - zx1;
+        let diffY = gy - zy1;
+        let dist = Math.sqrt(diffX*diffX + diffY*diffY);
+        if (dist < 200) {  // if zombie too close
+            dx += diffX / dist * 3; // run away faster
+            dy += diffY / dist * 3;
+        }
+    }
+    if (document.getElementById("myImg03").style.display != "none") {
+        let diffX = gx - zx2;
+        let diffY = gy - zy2;
+        let dist = Math.sqrt(diffX*diffX + diffY*diffY);
+        if (dist < 200) {
+            dx += diffX / dist * 3;
+            dy += diffY / dist * 3;
+        }
+    }
+
+    // this is what keeps the crumbgeek inbounds so dont delete this
+    gx = Math.min(Math.max(gx + dx, 0), window.innerWidth - 80);
+    gy = Math.min(Math.max(gy + dy, 0), window.innerHeight - 80);
+
+    guy.style.left = gx + "px";
+    guy.style.top  = gy + "px";
+}
+
 setInterval(function(){
-   moveZombieTowardPlayer("myImg02",2)
-   moveZombieTowardPlayer("myImg03",2.5)
-   moveZombieTowardPlayer("myImg06",6.5)
+   moveZombieTowardTarget("myImg02", 4);
+   moveZombieTowardTarget("myImg03", 4.5);
 
-   if (myImg02.style.display != "none" && myHitOther(myImg01,myImg02)) zombieAttack("myImg02")
-   if (myImg03.style.display != "none" && myHitOther(myImg01,myImg03)) zombieAttack("myImg03")
-   if (myImg06.style.display != "none" && myHitOther(myImg01,myImg06)) zombieAttack("myImg06")
+   moveScaredGuy();
 
-   checkAmmoPickup()
-}, 120)
+   if (document.getElementById('myImg02').style.display != "none" &&
+       myHitOther(document.getElementById("myImg01"),document.getElementById('myImg02')))
+       playerTakeDamage();
 
-function moveZombieTowardPlayer(id, speed) {
+   if (document.getElementById('myImg03').style.display != "none" &&
+       myHitOther(document.getElementById("myImg01"),document.getElementById('myImg03')))
+       playerTakeDamage();
+
+   checkAmmoPickup();
+}, 120);
+
+function moveZombieTowardTarget(id, speed){
     let z = document.getElementById(id);
-    if (z.style.display === "none") return; // dead zombie
+    if (z.style.display == "none") return;
 
-    let ai = zombieAI[id];
-
-    // Get current positions
     let zx = parseFloat(z.style.left);
     let zy = parseFloat(z.style.top);
+
     let px = parseFloat(myImg01.style.left);
     let py = parseFloat(myImg01.style.top);
 
-    let dx = px - zx;
-    let dy = py - zy;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < 1) return;
+    let gx = parseFloat(myImg06.style.left);
+    let gy = parseFloat(myImg06.style.top);
 
-    if (ai.mode === "chase") {
-        // Move toward player
-        let vx = (dx / dist) * speed;
-        let vy = (dy / dist) * speed;
+    let dxPlayer = px - zx;
+    let dyPlayer = py - zy;
+    let distPlayer = Math.sqrt(dxPlayer*dxPlayer + dyPlayer*dyPlayer);
 
-        z.style.left = zx + vx + "px";
-        z.style.top  = zy + vy + "px";
+    let dxGuy = gx - zx;
+    let dyGuy = gy - zy;
+    let distGuy = Math.sqrt(dxGuy*dxGuy + dyGuy*dyGuy);
 
-        //wall collision
-        if (zombieHitWall(z)) {
-            ai.mode = "wall";
+    let targetDx = dxPlayer;
+    let targetDy = dyPlayer;
 
-            let directions = ["up","down","left","right"];
-            let opposite = {up:"down", down:"up", left:"right", right:"left"};
-            directions = directions.filter(dir => dir != ai.lastDirection ? true : false);
-            ai.wallDirection = directions[Math.floor(Math.random()*directions.length)];
-        } else {
-            ai.lastDirection = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
-        }
-    }
-    else if (ai.mode === "wall") {
-        let vx = 0, vy = 0;
-        switch(ai.wallDirection){
-            case "up":    vy = -speed; break;
-            case "down":  vy = speed;  break;
-            case "left":  vx = -speed; break;
-            case "right": vx = speed;  break;
-        }
-
-        z.style.left = zx + vx + "px";
-        z.style.top  = zy + vy + "px";
-
-        if (!zombieHitWall(z)) {
-            let bufferDist = Math.sqrt((px - (zx + vx))**2 + (py - (zy + vy))**2);
-            if (bufferDist > 50) ai.mode = "chase";
-        }
+    if (document.getElementById("myImg06").style.display != "none" && distGuy < distPlayer) {
+        targetDx = dxGuy;
+        targetDy = dyGuy;
     }
 
-    z.style.transform = (px - parseFloat(z.style.left)) > 0 ? "scaleX(-1)" : "scaleX(1)";
+    let d = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+    if (d < 1) return;
+
+    z.style.left = zx + (targetDx / d) * speed + "px";
+    z.style.top  = zy + (targetDy / d) * speed + "px";
+
+    // Flip zombie
+    if (targetDx > 0){
+        z.style.transform = "scaleX(-1)";
+    } else {
+        z.style.transform = "scaleX(1)";
+    }
 }
+
 </script>
 
-<body
-id="myBody"
-style="background-repeat:repeat; background-size:20%"
-background="Background2.gif"
+<body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background1.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions();"
 
 onkeydown="{
@@ -332,30 +332,41 @@ onkeydown="{
       myImg01.style.top = lastPlayerTop - 10 + 'px'
    }
 
-   blockPlayerIfHit()
    checkExitDoor()
-}">
+}"
 
-<div id="healthDisplay" style="font-size:24px;font-weight:bold;color:red;"></div>
-<div id="ammoDisplay" style="font-size:24px;font-weight:bold;color:orange;"></div>
+<br>
 
-<input id="myText01" type=text size=50 placeholder="Feedback here"><br>
-<input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
+<div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
+<div id="ammoDisplay" style="font-size:24px; font-weight:bold; color:orange;"></div>
 
-<img id="myImg01" src="olddudewitgun.gif" style="position:absolute;width:100px;height:80px;left:10px;top:190px; z-index:2">
-   
-<img id="myImg02" src="Zombie1.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
-<img id="myImg03" src="Zombie2.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
-<img id="myImg06" src="Zombie3.gif" style="position:absolute;width:100px;height:80px; z-index:3">
-   
-<img id="myImg04" src="Exitdoor.gif" style="position:absolute;width:100px;height:80px;left:1500px;top:190px;">
-   
-<img id="myImg05" src="Ammunition1.gif" style="position:absolute;width:100px;height:80px;left:700px;top:800px; z-index:1">
-   
-<img id="myImg08" src="Wall.png" style="position:absolute;width:50px;height:250px;left:1000px;top:0px;">
-   
-<img id="myImg10" src="Wall.png" style="position:absolute;width:50px;height:250px;left:300px;top:600px;">
+<input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
+<input type=button value="shoot" onclick="fireBullet()"><br><br>
 
+<img id="myImg01" src="olddudewitgun.gif"
+style="position:absolute; width:100px; height:80px; left:10px; top:190px; z-index:2; transform: scaleX(1);">
+
+<img id="myImg02" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:350px; top:190px; z-index:1">
+
+<img id="myImg03" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:1">
+
+<img id="myImg04" src="Exitdoor.gif"
+style="position:absolute; width:100px; height:80px; left:1700px; top:600px;">
+
+<div id="myBullet"
+style="position:absolute; width:12px; height:12px; background:yellow;
+left:-200px; top:-200px; display:none; z-index:9999;">
+</div>
+
+<img id="myImg05" src="Ammunition1.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:600px; z-index:0">
+
+<img id="myImg06" src="Scaredguy2.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:600px;">
+
+<img id="myImg07" src="Wall.png"
+style="position:absolute; width:100px; height:200px; left:400px; top:700px;">
+   
 </body>
