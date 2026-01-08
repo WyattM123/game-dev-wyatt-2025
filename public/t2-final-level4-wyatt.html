@@ -1,7 +1,7 @@
 <h1>t2-final-level4-wyatt.html</h1>
 <b style="color:green; background-color:darkgreen;">Objective: Survive the onslaught</b>
-<script>
 
+<script>
 let myGlobalX = 0
 let myClock
 let myScore = 10
@@ -10,9 +10,11 @@ let lastDirection = "right"
 let canShoot = true
 let shootCooldown = 400
 let bullets = []
-AC
+
 var zombie1HP = 2
 var zombie2HP = 2
+var zombie3HP = 2
+var zombie4HP = 2
 
 let playerHP = 10
 let canTakeDamage = true
@@ -31,16 +33,14 @@ function updateAmmoDisplay(){
 function playerTakeDamage(){
    if (!canTakeDamage) return
 
-   playerHP -= 1
+   playerHP--
    updateHealthDisplay()
    canTakeDamage = false
 
    let r = document.getElementById("myImg01").getBoundingClientRect()
    spawnHitParticle(r.left + 40, r.top + 30)
 
-   setTimeout(function(){
-      canTakeDamage = true
-   }, 1000)
+   setTimeout(()=> canTakeDamage = true, 1000)
 
    if (playerHP <= 0){
       alert("Game Over")
@@ -51,12 +51,7 @@ function playerTakeDamage(){
 function myHitOther(el1, el2){
    let A = el1.getBoundingClientRect()
    let B = el2.getBoundingClientRect()
-   return !(
-      A.right < B.left ||
-      A.left > B.right ||
-      A.bottom < B.top ||
-      A.top > B.bottom
-   )
+   return !(A.right < B.left || A.left > B.right || A.bottom < B.top || A.top > B.bottom)
 }
 
 function spawnHitParticle(x,y){
@@ -73,164 +68,115 @@ function spawnHitParticle(x,y){
    p.style.transition = "opacity 0.4s ease-out, transform 0.4s ease-out"
    document.body.appendChild(p)
 
-   setTimeout(function(){
+   setTimeout(()=>{
       p.style.opacity = "0"
       p.style.transform = "scale(2)"
-   }, 10)
+   },10)
 
-   setTimeout(function(){
-      p.remove()
-   }, 450)
+   setTimeout(()=> p.remove(),450)
 }
 
-function checkExitDoor(){
-   if (myHitOther(document.getElementById('myImg01'),document.getElementById('myImg04'))){
-      document.all.myText01.value = "Made it out... For now"
-      alert("Next level")
-      location = "t2-final-level2-wyatt.html"
-   }
-}
-
-function hitZombie(zombieID, hpVarName){
-   let z = document.getElementById(zombieID)
-   let rect = z.getBoundingClientRect()
-   spawnHitParticle(rect.left + 40, rect.top + 30)
-
-   window[hpVarName] -= 1
-
-   if (window[hpVarName] <= 0){
-      z.style.display = "none"
-      document.all.myText01.value = zombieID + " shot dead"
-   } else {
-      document.all.myText01.value = zombieID + " shot"
-   }
-}
-
-function fireBullet() {
-    if (!canShoot || ammo <= 0) return;
-
-    ammo -= 1;
-    updateAmmoDisplay();
-
-    canShoot = false;
-    setTimeout(() => canShoot = true, shootCooldown);
-
-    let b = document.createElement("div");
-    b.style.position = "absolute";
-    b.style.width = "12px";
-    b.style.height = "12px";
-    b.style.background = "yellow";
-    b.style.zIndex = 9999;
-
-    let g = document.getElementById('myImg01');
-    let gx = parseInt(g.style.left)
-    let gy = parseInt(g.style.top)
-
-    b.style.left = gx + 45 + "px";
-    b.style.top  = gy + 35 + "px";
-
-    document.body.appendChild(b);
-
-    let dx = 0, dy = 0;
-    if (lastDirection == "right") dx = 10;
-    if (lastDirection == "left")  dx = -10;
-    if (lastDirection == "up")    dy = -10;
-    if (lastDirection == "down")  dy = 10;
-
-    let bulletObj = {el: b, dx: dx, dy: dy, interval: null};
-
-    bulletObj.interval = setInterval(() => {
-        let bx = parseInt(b.style.left) + bulletObj.dx;
-        let by = parseInt(b.style.top) + bulletObj.dy;
-        b.style.left = bx + "px";
-        b.style.top  = by + "px";
-
-        if (document.getElementById('myImg02').style.display != "none" && myHitOther(b, document.getElementById('myImg02'))) {
-            hitZombie("myImg02", "zombie1HP");
-            removeBullet(bulletObj);
-        }
-
-        if (document.getElementById('myImg03').style.display != "none" && myHitOther(b, document.getElementById('myImg03'))) {
-            hitZombie("myImg03", "zombie2HP");
-            removeBullet(bulletObj);
-        }
-
-        if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
-            removeBullet(bulletObj);
-        }
-    }, 20);
-
-    bullets.push(bulletObj);
-}
-
-function removeBullet(bulletObj) {
-    clearInterval(bulletObj.interval);
-    bulletObj.el.remove();
-    bullets = bullets.filter(b => b !== bulletObj);
-}
-
-function randomizeZombiePositions(){
-   let minX = 200, maxX = 800
-   let minY = 100, maxY = 400
-
-   ;["myImg02","myImg03"].forEach(id=>{
-      let z = document.getElementById(id)
-      z.style.left = Math.random()*(maxX-minX)+minX+"px"
-      z.style.top  = Math.random()*(maxY-minY)+minY+"px"
-   })
-}
-
-function checkAmmoPickup(){
-   let a = document.getElementById("myImg05")
-   if (a.style.display !== "none" && myHitOther(document.getElementById("myImg01"),a)){
-      ammo = Math.min(ammo + 6, maxAmmo)
-      updateAmmoDisplay()
-      a.style.display = "none"
-      document.all.myText01.value = "Picked up ammo!"
-   }
-}
-
-setInterval(function(){
-   moveZombieTowardPlayer("myImg02", 4)
-   moveZombieTowardPlayer("myImg03", 4.5)
-
-   if (document.getElementById('myImg02').style.display != "none" &&
-       myHitOther(document.getElementById("myImg01"),document.getElementById('myImg02')))
-       playerTakeDamage()
-
-   if (document.getElementById('myImg03').style.display != "none" &&
-       myHitOther(document.getElementById("myImg01"),document.getElementById('myImg03')))
-       playerTakeDamage()
-
-   checkAmmoPickup()
-}, 120)
-
-function moveZombieTowardPlayer(id, speed){
+function hitZombie(id, hpVar){
    let z = document.getElementById(id)
-   if (z.style.display == "none") return
+   let r = z.getBoundingClientRect()
+   spawnHitParticle(r.left + 40, r.top + 30)
 
-   let zx = parseFloat(z.style.left)
-   let zy = parseFloat(z.style.top)
-
-   let px = parseFloat(myImg01.style.left)
-   let py = parseFloat(myImg01.style.top)
-
-   let dx = px - zx
-   let dy = py - zy
-   let d = Math.sqrt(dx*dx + dy*dy)
-   if (d < 1) return
-
-   z.style.left = zx + (dx / d) * speed + "px"
-   z.style.top  = zy + (dy / d) * speed + "px"
-
-   if (dx > 0){
-      z.style.transform = "scaleX(-1)"
+   window[hpVar]--
+   if (window[hpVar] <= 0){
+      z.style.display = "none"
+      document.all.myText01.value = id + " killed"
    } else {
-      z.style.transform = "scaleX(1)"
+      document.all.myText01.value = id + " hit"
    }
 }
 
+function fireBullet(){
+   if (!canShoot || ammo <= 0) return
+
+   ammo--
+   updateAmmoDisplay()
+   canShoot = false
+   setTimeout(()=> canShoot = true, shootCooldown)
+
+   let b = document.createElement("div")
+   b.style.position = "absolute"
+   b.style.width = "12px"
+   b.style.height = "12px"
+   b.style.background = "yellow"
+   b.style.zIndex = 9999
+
+   let g = document.getElementById("myImg01")
+   b.style.left = parseInt(g.style.left) + 45 + "px"
+   b.style.top  = parseInt(g.style.top)  + 35 + "px"
+   document.body.appendChild(b)
+
+   let dx=0, dy=0
+   if (lastDirection=="right") dx=10
+   if (lastDirection=="left") dx=-10
+   if (lastDirection=="up") dy=-10
+   if (lastDirection=="down") dy=10
+
+   let interval = setInterval(()=>{
+      b.style.left = parseInt(b.style.left) + dx + "px"
+      b.style.top  = parseInt(b.style.top)  + dy + "px"
+
+      ;[
+        ["myImg02","zombie1HP"],
+        ["myImg03","zombie2HP"],
+        ["myImg06","zombie3HP"],
+        ["myImg07","zombie4HP"]
+      ].forEach(z=>{
+         let el = document.getElementById(z[0])
+         if (el && el.style.display!="none" && myHitOther(b,el)){
+            hitZombie(z[0],z[1])
+            clearInterval(interval)
+            b.remove()
+         }
+      })
+
+      if (parseInt(b.style.left)<-20 || parseInt(b.style.left)>2000 ||
+          parseInt(b.style.top)<-20  || parseInt(b.style.top)>2000){
+         clearInterval(interval)
+         b.remove()
+      }
+   },20)
+}
+
+function moveZombieTowardPlayer(id,speed){
+   let z = document.getElementById(id)
+   if (!z || z.style.display=="none") return
+
+   let zx=parseFloat(z.style.left)
+   let zy=parseFloat(z.style.top)
+   let px=parseFloat(myImg01.style.left)
+   let py=parseFloat(myImg01.style.top)
+
+   let dx=px-zx
+   let dy=py-zy
+   let d=Math.sqrt(dx*dx+dy*dy)
+   if (d<1) return
+
+   z.style.left = zx + (dx/d)*speed + "px"
+   z.style.top  = zy + (dy/d)*speed + "px"
+   z.style.transform = dx>0 ? "scaleX(-1)" : "scaleX(1)"
+}
+
+setInterval(()=>{
+   [
+     ["myImg02",4],
+     ["myImg03",4.5],
+     ["myImg06",3.5],
+     ["myImg07",5]
+   ].forEach(z=>{
+      let el = document.getElementById(z[0])
+      if (!el) return
+      moveZombieTowardPlayer(z[0], z[1])
+      if (el.style.display!="none" && myHitOther(myImg01, el))
+         playerTakeDamage()
+   })
+},120)
 </script>
+
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay()"
