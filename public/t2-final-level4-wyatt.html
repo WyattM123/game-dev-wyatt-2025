@@ -123,8 +123,8 @@ function fireBullet(){
       ;[
         ["myImg02","zombie1HP"],
         ["myImg03","zombie2HP"],
-        ["myImg06","zombie3HP"],
-        ["myImg07","zombie4HP"]
+        ["myImg04","zombie3HP"],
+        ["myImg05","zombie4HP"]
       ].forEach(z=>{
          let el = document.getElementById(z[0])
          if (el && el.style.display!="none" && myHitOther(b,el)){
@@ -165,8 +165,8 @@ setInterval(()=>{
    [
      ["myImg02",4],
      ["myImg03",4.5],
-     ["myImg06",3.5],
-     ["myImg07",5]
+     ["myImg04",6],
+     ["myImg05",2]
    ].forEach(z=>{
       let el = document.getElementById(z[0])
       if (!el) return
