@@ -2,20 +2,25 @@
 <b style="color:green; background-color:darkgreen;">Objective: Survive the onslaught</b>
 
 <script>
+let myGlobalX = 0
 let myClock
+let myScore = 10
 let lastDirection = "right"
 
 let canShoot = true
 let shootCooldown = 400
+let bullets = []
+
+var zombie1HP = 2
+var zombie2HP = 2
+var zombie3HP = 1
+var zombie4HP = 10
 
 let playerHP = 10
 let canTakeDamage = true
 
 let ammo = 24
 let maxAmmo = 24
-
-let zombies = []
-let zombieCounter = 0
 
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
@@ -71,83 +76,19 @@ function spawnHitParticle(x,y){
    setTimeout(()=> p.remove(),450)
 }
 
-/* ---------------- ZOMBIE SYSTEM ---------------- */
-
-function getOffscreenSpawnPosition(){
-   const buffer = 80
-   const maxDistance = 450
-
-   const vw = window.innerWidth
-   const vh = window.innerHeight
-
-   let side = Math.floor(Math.random() * 4)
-   let x, y
-
-   if (side === 0){ x = -buffer; y = Math.random() * vh }
-   if (side === 1){ x = vw + buffer; y = Math.random() * vh }
-   if (side === 2){ x = Math.random() * vw; y = -buffer }
-   if (side === 3){ x = Math.random() * vw; y = vh + buffer }
-
-   let px = parseFloat(myImg01.style.left)
-   let py = parseFloat(myImg01.style.top)
-
-   x = Math.max(px - maxDistance, Math.min(px + maxDistance, x))
-   y = Math.max(py - maxDistance, Math.min(py + maxDistance, y))
-
-   return {x,y}
-}
-
-function spawnZombie(hp, speed){
-   let z = document.getElementById("zombieTemplate").cloneNode(true)
-
-   zombieCounter++
-   z.id = "zombie" + zombieCounter
-   z.style.display = "block"
-
-   let pos = getOffscreenSpawnPosition()
-   z.style.left = pos.x + "px"
-   z.style.top  = pos.y + "px"
-
-   z.dataset.hp = hp
-   z.dataset.speed = speed
-
-   document.body.appendChild(z)
-   zombies.push(z)
-}
-
-function moveZombieTowardPlayer(id,speed){
+function hitZombie(id, hpVar){
    let z = document.getElementById(id)
-   if (!z) return
+   let r = z.getBoundingClientRect()
+   spawnHitParticle(r.left + 40, r.top + 30)
 
-   let zx=parseFloat(z.style.left)
-   let zy=parseFloat(z.style.top)
-   let px=parseFloat(myImg01.style.left)
-   let py=parseFloat(myImg01.style.top)
-
-   let dx=px-zx
-   let dy=py-zy
-   let d=Math.sqrt(dx*dx+dy*dy)
-   if (d<1) return
-
-   z.style.left = zx + (dx/d)*speed + "px"
-   z.style.top  = zy + (dy/d)*speed + "px"
-   z.style.transform = dx>0 ? "scaleX(-1)" : "scaleX(1)"
+   window[hpVar]--
+   if (window[hpVar] <= 0){
+      z.style.display = "none"
+      document.all.myText01.value = id + " killed"
+   } else {
+      document.all.myText01.value = id + " hit"
+   }
 }
-
-/* Zombie movement + damage */
-setInterval(()=>{
-   zombies.forEach(z=>{
-      if (z.dataset.hp <= 0) return
-
-      moveZombieTowardPlayer(z.id, parseFloat(z.dataset.speed))
-
-      if (myHitOther(myImg01, z)){
-         playerTakeDamage()
-      }
-   })
-},120)
-
-/* ---------------- SHOOTING ---------------- */
 
 function fireBullet(){
    if (!canShoot || ammo <= 0) return
@@ -164,8 +105,9 @@ function fireBullet(){
    b.style.background = "yellow"
    b.style.zIndex = 9999
 
-   b.style.left = parseInt(myImg01.style.left) + 45 + "px"
-   b.style.top  = parseInt(myImg01.style.top)  + 35 + "px"
+   let g = document.getElementById("myImg01")
+   b.style.left = parseInt(g.style.left) + 45 + "px"
+   b.style.top  = parseInt(g.style.top)  + 35 + "px"
    document.body.appendChild(b)
 
    let dx=0, dy=0
@@ -178,62 +120,114 @@ function fireBullet(){
       b.style.left = parseInt(b.style.left) + dx + "px"
       b.style.top  = parseInt(b.style.top)  + dy + "px"
 
-      zombies.forEach(z=>{
-         if (z.dataset.hp > 0 && myHitOther(b,z)){
-            z.dataset.hp--
-            let r = z.getBoundingClientRect()
-            spawnHitParticle(r.left + 40, r.top + 30)
-
-            if (z.dataset.hp <= 0){
-               z.remove()
-            }
-
+      ;[
+        ["myImg02","zombie1HP"],
+        ["myImg03","zombie2HP"],
+        ["myImg04","zombie3HP"],
+        ["myImg05","zombie4HP"]
+      ].forEach(z=>{
+         let el = document.getElementById(z[0])
+         if (el && el.style.display!="none" && myHitOther(b,el)){
+            hitZombie(z[0],z[1])
             clearInterval(interval)
             b.remove()
          }
       })
 
-      if (parseInt(b.style.left)<-50 || parseInt(b.style.left)>2000 ||
-          parseInt(b.style.top)<-50  || parseInt(b.style.top)>2000){
+      if (parseInt(b.style.left)<-20 || parseInt(b.style.left)>2000 ||
+          parseInt(b.style.top)<-20  || parseInt(b.style.top)>2000){
          clearInterval(interval)
          b.remove()
       }
    },20)
 }
 
-/* ---------------- SPAWN WAVES ---------------- */
+function moveZombieTowardPlayer(id,speed){
+   let z = document.getElementById(id)
+   if (!z || z.style.display=="none") return
+
+   let zx=parseFloat(z.style.left)
+   let zy=parseFloat(z.style.top)
+   let px=parseFloat(myImg01.style.left)
+   let py=parseFloat(myImg01.style.top)
+
+   let dx=px-zx
+   let dy=py-zy
+   let d=Math.sqrt(dx*dx+dy*dy)
+   if (d<1) return
+
+   z.style.left = zx + (dx/d)*speed + "px"
+   z.style.top  = zy + (dy/d)*speed + "px"
+   z.style.transform = dx>0 ? "scaleX(-1)" : "scaleX(1)"
+}
+
+function randomizeZombiePositions(){
+   let minX = 200, maxX = 800
+   let minY = 100, maxY = 400
+
+   ;["myImg02","myImg03","myImg04", "myImg05].forEach(id => {
+      let z = document.getElementById(id)
+      z.style.left = Math.random()*(maxX-minX)+minX+"px"
+      z.style.top  = Math.random()*(maxY-minY)+minY+"px"
+   })
+}
+
 
 setInterval(()=>{
-   spawnZombie(2, 4)
-   spawnZombie(4, 2.5)
-},3000)
-
+   [
+     ["myImg02",4],
+     ["myImg03",4.5],
+     ["myImg04",6],
+     ["myImg05",2]
+   ].forEach(z=>{
+      let el = document.getElementById(z[0])
+      if (!el) return
+      moveZombieTowardPlayer(z[0], z[1])
+      if (el.style.display!="none" && myHitOther(myImg01, el))
+         playerTakeDamage()
+   })
+},120)
 </script>
 
-<body id="myBody"
-style="background-repeat:repeat; background-size:20%"
-background="Background3.gif"
+
+<body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay()"
 
 onkeydown="{
    if (event.code == 'Space') { event.preventDefault(); fireBullet(); }
-   if (event.key == 'd') { lastDirection='right'; myImg01.style.transform='scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
-   if (event.key == 'a') { lastDirection='left';  myImg01.style.transform='scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
-   if (event.key == 's') { lastDirection='down';  myImg01.style.top=parseInt(myImg01.style.top)+10+'px' }
-   if (event.key == 'w') { lastDirection='up';    myImg01.style.top=parseInt(myImg01.style.top)-10+'px' }
+   if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
+   if (event.key == 'a') { lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
+   if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
+   if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
+   checkExitDoor()
 }">
-
 <br>
+
 <div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
 <div id="ammoDisplay" style="font-size:24px; font-weight:bold; color:orange;"></div>
 
-<input id="myText01" type=text size=50 placeholder="Feedback here"><br>
+<input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
+
 <input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
 
 <img id="myImg01" src="olddudewitgun.gif"
-style="position:absolute; width:100px; height:80px; left:10px; top:190px;">
+style="position:absolute; width:100px; height:80px; left:10px; top:190px; scaleX(1);">
+<img id="myImg02" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:350px; top:190px;">
 
-<img id="zombieTemplate" src="Zombie1.gif"
-style="position:absolute; width:100px; height:80px; display:none;">
+<img id="myImg03" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
+
+<img id="myImg04" src="Zombie3.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
+
+<img id="myImg05" src="Zombie4.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
+
+
+<div id="myBullet"
+style="position:absolute; width:12px; height:12px; background:yellow;
+left:-200px; top:-200px; display:none; z-index:9999;">
+</div>
 
 </body>
