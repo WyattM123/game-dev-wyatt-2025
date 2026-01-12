@@ -213,7 +213,7 @@ setInterval(()=>{
 
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
-onload="updateHealthDisplay(); updateAmmoDisplay()"
+onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions()"
 
 onkeydown="{
    if (event.code == 'Space') { event.preventDefault(); fireBullet(); }
