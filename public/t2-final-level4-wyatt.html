@@ -180,24 +180,46 @@ function moveZombieTowardPlayer(id,speed){
 }
 
 function respawnZombie(id, hpVar){
-    let z = document.getElementById(id);
-    if (!z) return;
+    let z = document.getElementById(id)
+    if (!z) return
 
-    window[hpVar] = 2;
-    if(id === "myImg04") window[hpVar] = 1;
-    if(id === "myImg05") window[hpVar] = 10;
+    const respawnTimes = {
+        myImg02: 2000,  // Zombie1
+        myImg03: 2500,  // Zombie2
+        myImg04: 1500,  // Zombie3
+        myImg05: 5000,  // Zombie4
 
-    z.style.display = "block";
+        myImg06: 2000,
+        myImg07: 2000,
+        myImg08: 2500,
+        myImg09: 2500,
+        myImg10: 1500,
+        myImg11: 5000
+    }
 
-    let minX = 100;
-    let maxX = window.innerWidth - 150;
-    let minY = -100;
-    let maxY = -50;
+    let delay = respawnTimes[id] || 3000
 
-    z.style.left = Math.random() * (maxX - minX) + minX + "px";
-    z.style.top  = Math.random() * (maxY - minY) + minY + "px";
+    // hide zombie while waiting
+    z.style.display = "none"
+
+    setTimeout(() => {
+
+        window[hpVar] = 2
+        if (id === "myImg04" || id === "myImg10") window[hpVar] = 1
+        if (id === "myImg05" || id === "myImg11") window[hpVar] = 10
+
+        let minX = 100
+        let maxX = window.innerWidth - 150
+        let minY = -150
+        let maxY = -50
+
+        z.style.left = Math.random() * (maxX - minX) + minX + "px"
+        z.style.top  = Math.random() * (maxY - minY) + minY + "px"
+
+        z.style.display = "block"
+
+    }, delay)
 }
-
    
 function randomizeZombiePositions(){
    let minX = 200, maxX = 800
