@@ -16,6 +16,15 @@ var zombie2HP = 2
 var zombie3HP = 1
 var zombie4HP = 10
 
+var zombie1bHP = 2
+var zombie1cHP = 2
+
+var zombie2bHP = 2
+var zombie2cHP = 2
+
+var zombie3bHP = 1
+var zombie4bHP = 10
+
 let playerHP = 10
 let canTakeDamage = true
 
@@ -122,12 +131,19 @@ function fireBullet(){
       b.style.left = parseInt(b.style.left) + dx + "px"
       b.style.top  = parseInt(b.style.top)  + dy + "px"
 
-      ;[
-        ["myImg02","zombie1HP"],
-        ["myImg03","zombie2HP"],
-        ["myImg04","zombie3HP"],
-        ["myImg05","zombie4HP"]
-      ].forEach(z=>{
+;[
+  ["myImg02","zombie1HP"],
+  ["myImg03","zombie2HP"],
+  ["myImg04","zombie3HP"],
+  ["myImg05","zombie4HP"],
+
+  ["myImg06","zombie1bHP"],
+  ["myImg07","zombie1cHP"],
+  ["myImg08","zombie2bHP"],
+  ["myImg09","zombie2cHP"],
+  ["myImg10","zombie3bHP"],
+  ["myImg11","zombie4bHP"]
+].forEach(z=>{
          let el = document.getElementById(z[0])
          if (el && el.style.display!="none" && myHitOther(b,el)){
             hitZombie(z[0],z[1])
@@ -196,18 +212,27 @@ function randomizeZombiePositions(){
 
 
 setInterval(()=>{
-   [
-     ["myImg02",4],
-     ["myImg03",4.5],
-     ["myImg04",6],
-     ["myImg05",2]
-   ].forEach(z=>{
-      let el = document.getElementById(z[0])
-      if (!el) return
-      moveZombieTowardPlayer(z[0], z[1])
-      if (el.style.display!="none" && myHitOther(myImg01, el))
-         playerTakeDamage()
-   })
+  [
+    ["myImg02",4],
+    ["myImg03",4.5],
+    ["myImg04",6],
+    ["myImg05",2],
+
+    ["myImg06",4],
+    ["myImg07",4],
+    ["myImg08",4.5],
+    ["myImg09",4.5],
+    ["myImg10",6],
+    ["myImg11",2]
+  ].forEach(z=>{
+    let el = document.getElementById(z[0])
+    if (!el) return
+
+    moveZombieTowardPlayer(z[0], z[1])
+
+    if (el.style.display!="none" && myHitOther(myImg01, el))
+      playerTakeDamage()
+  })
 },120)
 </script>
 
@@ -246,6 +271,23 @@ style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 <img id="myImg05" src="Zombie4.gif"
 style="position:absolute; width:100px; height:80px; left:500px; top:190px;">
 
+<img id="myImg06" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:300px; top:-80px;">
+
+<img id="myImg07" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:600px; top:-80px;">
+
+<img id="myImg08" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:400px; top:-120px;">
+
+<img id="myImg09" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:700px; top:-120px;">
+
+<img id="myImg10" src="Zombie3.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:-150px;">
+
+<img id="myImg11" src="Zombie4.gif"
+style="position:absolute; width:100px; height:80px; left:800px; top:-150px;">
 
 <div id="myBullet"
 style="position:absolute; width:12px; height:12px; background:yellow;
