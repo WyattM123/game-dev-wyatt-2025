@@ -11,6 +11,8 @@ let canShoot = true
 let shootCooldown = 400
 let bullets = []
 
+const noRespawnZombies = ["myImg02", "myImg03", "myImg04", "myImg05"]
+   
 var zombie1HP = 2
 var zombie2HP = 2
 var zombie3HP = 1
@@ -91,14 +93,14 @@ function hitZombie(id, hpVar){
     spawnHitParticle(r.left + 40, r.top + 30)
 
     window[hpVar]--
-    if (window[hpVar] <= 0){
-        z.style.display = "none"
-        document.all.myText01.value = id + " killed"
-        
+if (window[hpVar] <= 0){
+    z.style.display = "none"
+    document.all.myText01.value = id + " killed"
+
+    if (!noRespawnZombies.includes(id)) {
         setTimeout(() => respawnZombie(id, hpVar), 3000)
-    } else {
-        document.all.myText01.value = id + " hit"
     }
+}
 }
 
 function fireBullet(){
