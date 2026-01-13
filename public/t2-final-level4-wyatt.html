@@ -11,7 +11,6 @@ let canShoot = true
 let shootCooldown = 400
 let bullets = []
 
-let radioActivated = false
 const noRespawnZombies = ["myImg02", "myImg03", "myImg04", "myImg05"]
    
 var zombie1HP = 2
@@ -205,10 +204,6 @@ function moveZombieTowardPlayer(id,speed){
 }
 
 function respawnZombie(id, hpVar){    
-   if (!radioActivated &&
-    ["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].includes(id)) {
-   return
-}
    let z = document.getElementById(id)
     if (!z) return
 
@@ -261,28 +256,7 @@ function randomizeZombiePositions(){
    })
 }
 
-function checkRadio(){
-   if (radioActivated) return
-
-   let radio = document.getElementById("myImg12")
-   if (myHitOther(myImg01, radio)){
-      radioActivated = true
-      document.all.myText01.value = "Radio activated!"
-
-      let r = radio.getBoundingClientRect()
-      spawnRadioParticle(r.left + 40, r.top + 30)
-
-      ["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].forEach(id=>{
-         let z = document.getElementById(id)
-         if (!z) return
-
-         z.style.display = "block"
-      })
-   }
-}
-
 setInterval(()=>{
-   checkRadio()
   [
     ["myImg02",4],
     ["myImg03",4.5],
