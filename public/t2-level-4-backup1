@@ -1,0 +1,326 @@
+<h1>t2-final-level4-wyatt.html</h1>
+<b style="color:green; background-color:darkgreen;">Objective: Survive the onslaught</b>
+
+<script>
+let myGlobalX = 0
+let myClock
+let myScore = 10
+let lastDirection = "right"
+
+let canShoot = true
+let shootCooldown = 400
+let bullets = []
+
+const noRespawnZombies = ["myImg02", "myImg03", "myImg04", "myImg05"]
+   
+var zombie1HP = 2
+var zombie2HP = 2
+var zombie3HP = 1
+var zombie4HP = 10
+
+var zombie1bHP = 2
+var zombie1cHP = 2
+
+var zombie2bHP = 2
+var zombie2cHP = 2
+
+var zombie3bHP = 1
+var zombie4bHP = 10
+
+let playerHP = 10
+let canTakeDamage = true
+
+let ammo = 24
+let maxAmmo = 24
+
+function updateHealthDisplay(){
+   document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
+}
+
+function updateAmmoDisplay(){
+   document.getElementById("ammoDisplay").innerHTML = "Ammo: " + ammo + " / " + maxAmmo
+}
+
+function playerTakeDamage(){
+   if (!canTakeDamage) return
+
+   playerHP--
+   updateHealthDisplay()
+   canTakeDamage = false
+
+   let r = document.getElementById("myImg01").getBoundingClientRect()
+   spawnHitParticle(r.left + 40, r.top + 30)
+
+   setTimeout(()=> canTakeDamage = true, 1000)
+
+   if (playerHP <= 0){
+      alert("Game Over")
+      location.reload()
+   }
+}
+
+function myHitOther(el1, el2){
+   let A = el1.getBoundingClientRect()
+   let B = el2.getBoundingClientRect()
+   return !(A.right < B.left || A.left > B.right || A.bottom < B.top || A.top > B.bottom)
+}
+
+function spawnHitParticle(x,y, color="red"){
+   let p = document.createElement("div")
+   p.style.position = "absolute"
+   p.style.left = x + "px"
+   p.style.top  = y + "px"
+   p.style.width = "20px"
+   p.style.height = "20px"
+   p.style.background = color
+   p.style.borderRadius = "50%"
+   p.style.opacity = "1"
+   p.style.zIndex = 9999
+   p.style.transition = "opacity 0.4s ease-out, transform 0.4s ease-out"
+   document.body.appendChild(p)
+
+   setTimeout(()=>{
+      p.style.opacity = "0"
+      p.style.transform = "scale(2)"
+   },10)
+
+   setTimeout(()=> p.remove(),450)
+}
+   
+function hitZombie(id, hpVar){
+    let z = document.getElementById(id)
+    let r = z.getBoundingClientRect()
+    spawnHitParticle(r.left + 40, r.top + 30)
+
+    window[hpVar]--
+    if (window[hpVar] <= 0){
+        z.style.display = "none"
+        document.all.myText01.value = id + " killed"
+
+        if (!noRespawnZombies.includes(id)) {
+            setTimeout(() => respawnZombie(id, hpVar), 3000)
+        }
+    }
+}
+
+function fireBullet(){
+   if (!canShoot || ammo <= 0) return
+
+   ammo--
+   updateAmmoDisplay()
+   canShoot = false
+   setTimeout(()=> canShoot = true, shootCooldown)
+
+   let b = document.createElement("div")
+   b.style.position = "absolute"
+   b.style.width = "12px"
+   b.style.height = "12px"
+   b.style.background = "yellow"
+   b.style.zIndex = 9999
+
+   let g = document.getElementById("myImg01")
+   b.style.left = parseInt(g.style.left) + 45 + "px"
+   b.style.top  = parseInt(g.style.top)  + 35 + "px"
+   document.body.appendChild(b)
+
+   let dx=0, dy=0
+   if (lastDirection=="right") dx=10
+   if (lastDirection=="left") dx=-10
+   if (lastDirection=="up") dy=-10
+   if (lastDirection=="down") dy=10
+
+   let interval = setInterval(()=>{
+      b.style.left = parseInt(b.style.left) + dx + "px"
+      b.style.top  = parseInt(b.style.top) + dy + "px"
+
+      ;[
+        ["myImg02","zombie1HP"],
+        ["myImg03","zombie2HP"],
+        ["myImg04","zombie3HP"],
+        ["myImg05","zombie4HP"],
+        ["myImg06","zombie1bHP"],
+        ["myImg07","zombie1cHP"],
+        ["myImg08","zombie2bHP"],
+        ["myImg09","zombie2cHP"],
+        ["myImg10","zombie3bHP"],
+        ["myImg11","zombie4bHP"]
+      ].forEach(z=>{
+         let el = document.getElementById(z[0])
+         if (el && el.style.display!="none" && myHitOther(b,el)){
+            hitZombie(z[0],z[1])
+            clearInterval(interval)
+            b.remove()
+         }
+      })
+
+      if (parseInt(b.style.left)<-20 || parseInt(b.style.left)>2000 ||
+          parseInt(b.style.top)<-20  || parseInt(b.style.top)>2000){
+         clearInterval(interval)
+         b.remove()
+      }
+   },20)
+}
+
+function moveZombieTowardPlayer(id,speed){
+   let z = document.getElementById(id)
+   if (!z || z.style.display=="none") return
+
+   let zx=parseFloat(z.style.left) || 0
+   let zy=parseFloat(z.style.top) || 0
+   let px=parseFloat(myImg01.style.left) || 0
+   let py=parseFloat(myImg01.style.top) || 0
+
+   let dx=px-zx
+   let dy=py-zy
+   let d=Math.sqrt(dx*dx+dy*dy)
+   if (d<1) return
+
+   z.style.left = zx + (dx/d)*speed + "px"
+   z.style.top  = zy + (dy/d)*speed + "px"
+   z.style.transform = dx>0 ? "scaleX(-1)" : "scaleX(1)"
+}
+
+function respawnZombie(id, hpVar){    
+   let z = document.getElementById(id)
+   if (!z) return
+
+   const respawnTimes = {
+        myImg02: 6000,
+        myImg03: 7500,
+        myImg04: 4500,
+        myImg05: 15000,
+        myImg06: 6000,
+        myImg07: 6000,
+        myImg08: 4500,
+        myImg09: 4500,
+        myImg10: 3500,
+        myImg11: 15000
+   }
+
+   let delay = respawnTimes[id] || 3000
+
+   z.style.display = "none"
+
+   setTimeout(() => {
+        window[hpVar] = 2
+        if (id === "myImg04" || id === "myImg10") window[hpVar] = 1
+        if (id === "myImg05" || id === "myImg11") window[hpVar] = 10
+
+        let minX = 100
+        let maxX = window.innerWidth - 150
+        let minY = -150
+        let maxY = -50
+
+        z.style.left = Math.random() * (maxX - minX) + minX + "px"
+        z.style.top  = Math.random() * (maxY - minY) + minY + "px"
+
+        z.style.display = "block"
+   }, delay)
+}
+   
+function randomizeZombiePositions(){
+   let minX = 200, maxX = 800
+   let minY = 100, maxY = 400
+
+   ;["myImg02","myImg03","myImg04", "myImg05"].forEach(id => {
+      let z = document.getElementById(id)
+      z.style.left = Math.random()*(maxX-minX)+minX+"px"
+      z.style.top  = Math.random()*(maxY-minY)+minY+"px"
+   })
+}
+
+function checkRadioCollision(){
+   let radio = document.getElementById("myImg12")
+   if (myHitOther(myImg01, radio)){
+      let r = radio.getBoundingClientRect()
+      spawnHitParticle(r.left + 40, r.top + 30, "yellow")
+   }
+}
+
+setInterval(()=>{
+  [
+    ["myImg02",4],
+    ["myImg03",4.5],
+    ["myImg04",6],
+    ["myImg05",2],
+    ["myImg06",4],
+    ["myImg07",4],
+    ["myImg08",4.5],
+    ["myImg09",4.5],
+    ["myImg10",6],
+    ["myImg11",2]
+  ].forEach(z=>{
+    let el = document.getElementById(z[0])
+    if (!el) return
+
+    moveZombieTowardPlayer(z[0], z[1])
+
+    if (el.style.display!="none" && myHitOther(myImg01, el))
+      playerTakeDamage()
+  })
+
+  checkRadioCollision()
+},120)
+</script>
+
+
+<body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
+onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions()"
+onkeydown="{
+   if (event.code == 'Space') { event.preventDefault(); fireBullet(); }
+   if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
+   if (event.key == 'a') { lastDirection='left'; myImg01.style.transform = 'scaleX(-1)'; myImg01.style.left=parseInt(myImg01.style.left)-10+'px' }
+   if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
+   if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
+   checkExitDoor()
+}">
+<br>
+
+<div id="healthDisplay" style="font-size:24px; font-weight:bold; color:red;"></div>
+<div id="ammoDisplay" style="font-size:24px; font-weight:bold; color:orange;"></div>
+
+<input id="myText01" type=text value="" size=50 placeholder="Feedback here"><br>
+
+<input type=button value="Shoot (Space)" onclick="fireBullet()"><br><br>
+
+<img id="myImg01" src="olddudewitgun.gif"
+style="position:absolute; width:100px; height:80px; left:10px; top:190px; scaleX(1); z-index:2;">
+<img id="myImg02" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:350px; top:190px; z-index:3;">
+
+<img id="myImg03" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:3;">
+
+<img id="myImg04" src="Zombie3.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:3;">
+
+<img id="myImg05" src="Zombie4.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:190px; z-index:3;">
+
+<img id="myImg06" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:300px; top:-80px; z-index:3;">
+
+<img id="myImg07" src="Zombie1.gif"
+style="position:absolute; width:100px; height:80px; left:600px; top:-80px; z-index:3;">
+
+<img id="myImg08" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:400px; top:-120px; z-index:3;">
+
+<img id="myImg09" src="Zombie2.gif"
+style="position:absolute; width:100px; height:80px; left:700px; top:-120px; z-index:3;">
+
+<img id="myImg10" src="Zombie3.gif"
+style="position:absolute; width:100px; height:80px; left:500px; top:-150px; z-index:3;">
+
+<img id="myImg11" src="Zombie4.gif"
+style="position:absolute; width:100px; height:80px; left:800px; top:-150px; z-index:3;">
+
+<img id="myImg12" src="Radio.gif"
+style="position:absolute; width:100px; height:80px; left:900px; top:350px; z-index:1;">
+
+<div id="myBullet"
+style="position:absolute; width:12px; height:12px; background:yellow;
+left:-200px; top:-200px; display:none; z-index:9999;">
+</div>
+
+</body>
