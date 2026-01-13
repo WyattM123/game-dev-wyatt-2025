@@ -86,28 +86,6 @@ function spawnHitParticle(x,y){
 
    setTimeout(()=> p.remove(),450)
 }
-
-function spawnRadioParticle(x, y){
-   let p = document.createElement("div")
-   p.style.position = "absolute"
-   p.style.left = x + "px"
-   p.style.top  = y + "px"
-   p.style.width = "25px"
-   p.style.height = "25px"
-   p.style.background = "yellow"
-   p.style.borderRadius = "50%"
-   p.style.opacity = "1"
-   p.style.zIndex = 9999
-   p.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out"
-   document.body.appendChild(p)
-
-   setTimeout(()=>{
-      p.style.opacity = "0"
-      p.style.transform = "scale(3)"
-   },10)
-
-   setTimeout(()=> p.remove(),650)
-}
    
 function hitZombie(id, hpVar){
     let z = document.getElementById(id)
@@ -115,14 +93,14 @@ function hitZombie(id, hpVar){
     spawnHitParticle(r.left + 40, r.top + 30)
 
     window[hpVar]--
-if (window[hpVar] <= 0){
-    z.style.display = "none"
-    document.all.myText01.value = id + " killed"
+    if (window[hpVar] <= 0){
+        z.style.display = "none"
+        document.all.myText01.value = id + " killed"
 
-    if (!noRespawnZombies.includes(id)) {
-        setTimeout(() => respawnZombie(id, hpVar), 3000)
+        if (!noRespawnZombies.includes(id)) {
+            setTimeout(() => respawnZombie(id, hpVar), 3000)
+        }
     }
-}
 }
 
 function fireBullet(){
@@ -155,19 +133,18 @@ function fireBullet(){
       b.style.left = parseInt(b.style.left) + dx + "px"
       b.style.top  = parseInt(b.style.top)  + dy + "px"
 
-;[
-  ["myImg02","zombie1HP"],
-  ["myImg03","zombie2HP"],
-  ["myImg04","zombie3HP"],
-  ["myImg05","zombie4HP"],
-
-  ["myImg06","zombie1bHP"],
-  ["myImg07","zombie1cHP"],
-  ["myImg08","zombie2bHP"],
-  ["myImg09","zombie2cHP"],
-  ["myImg10","zombie3bHP"],
-  ["myImg11","zombie4bHP"]
-].forEach(z=>{
+      ;[
+        ["myImg02","zombie1HP"],
+        ["myImg03","zombie2HP"],
+        ["myImg04","zombie3HP"],
+        ["myImg05","zombie4HP"],
+        ["myImg06","zombie1bHP"],
+        ["myImg07","zombie1cHP"],
+        ["myImg08","zombie2bHP"],
+        ["myImg09","zombie2cHP"],
+        ["myImg10","zombie3bHP"],
+        ["myImg11","zombie4bHP"]
+      ].forEach(z=>{
          let el = document.getElementById(z[0])
          if (el && el.style.display!="none" && myHitOther(b,el)){
             hitZombie(z[0],z[1])
@@ -188,10 +165,10 @@ function moveZombieTowardPlayer(id,speed){
    let z = document.getElementById(id)
    if (!z || z.style.display=="none") return
 
-   let zx=parseFloat(z.style.left)
-   let zy=parseFloat(z.style.top)
-   let px=parseFloat(myImg01.style.left)
-   let py=parseFloat(myImg01.style.top)
+   let zx=parseFloat(z.style.left) || 0
+   let zy=parseFloat(z.style.top) || 0
+   let px=parseFloat(myImg01.style.left) || 0
+   let py=parseFloat(myImg01.style.top) || 0
 
    let dx=px-zx
    let dy=py-zy
@@ -205,29 +182,26 @@ function moveZombieTowardPlayer(id,speed){
 
 function respawnZombie(id, hpVar){    
    let z = document.getElementById(id)
-    if (!z) return
+   if (!z) return
 
-    const respawnTimes = {
-        myImg02: 6000,  // Zombie1
-        myImg03: 7500,  // Zombie2
-        myImg04: 4500,  // Zombie3
-        myImg05: 15000,  // Zombie4
-
+   const respawnTimes = {
+        myImg02: 6000,
+        myImg03: 7500,
+        myImg04: 4500,
+        myImg05: 15000,
         myImg06: 6000,
         myImg07: 6000,
         myImg08: 4500,
         myImg09: 4500,
         myImg10: 3500,
         myImg11: 15000
-    }
+   }
 
-    let delay = respawnTimes[id] || 3000
+   let delay = respawnTimes[id] || 3000
 
-    // hide zombie while waiting
-    z.style.display = "none"
+   z.style.display = "none"
 
-    setTimeout(() => {
-
+   setTimeout(() => {
         window[hpVar] = 2
         if (id === "myImg04" || id === "myImg10") window[hpVar] = 1
         if (id === "myImg05" || id === "myImg11") window[hpVar] = 10
@@ -241,8 +215,7 @@ function respawnZombie(id, hpVar){
         z.style.top  = Math.random() * (maxY - minY) + minY + "px"
 
         z.style.display = "block"
-
-    }, delay)
+   }, delay)
 }
    
 function randomizeZombiePositions(){
@@ -262,7 +235,6 @@ setInterval(()=>{
     ["myImg03",4.5],
     ["myImg04",6],
     ["myImg05",2],
-
     ["myImg06",4],
     ["myImg07",4],
     ["myImg08",4.5],
@@ -273,11 +245,7 @@ setInterval(()=>{
     let el = document.getElementById(z[0])
     if (!el) return
 
-if (["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].includes(z[0])) {
-   if (!radioActivated) return
-}
-
-moveZombieTowardPlayer(z[0], z[1])
+    moveZombieTowardPlayer(z[0], z[1])
 
     if (el.style.display!="none" && myHitOther(myImg01, el))
       playerTakeDamage()
@@ -285,10 +253,8 @@ moveZombieTowardPlayer(z[0], z[1])
 },120)
 </script>
 
-
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions()"
-
 onkeydown="{
    if (event.code == 'Space') { event.preventDefault(); fireBullet(); }
    if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
