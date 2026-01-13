@@ -271,10 +271,18 @@ function checkRadio(){
 
       let r = radio.getBoundingClientRect()
       spawnRadioParticle(r.left + 40, r.top + 30)
+
+      ["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].forEach(id=>{
+         let z = document.getElementById(id)
+         if (!z) return
+
+         z.style.display = "block"
+      })
    }
-}   
+}
 
 setInterval(()=>{
+   checkRadio()
   [
     ["myImg02",4],
     ["myImg03",4.5],
@@ -314,7 +322,6 @@ onkeydown="{
    if (event.key == 's') { lastDirection='down';  myImg01.style.top =parseInt(myImg01.style.top )+10+'px' }
    if (event.key == 'w') { lastDirection='up';    myImg01.style.top =parseInt(myImg01.style.top )-10+'px' }
    checkExitDoor()
-   checkRadio()
 }">
 <br>
 
