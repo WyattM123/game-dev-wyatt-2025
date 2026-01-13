@@ -283,7 +283,7 @@ setInterval(()=>{
 
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
-onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions()"
+onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions(); hideTopZombies();"
 onkeydown="{
    if (event.code == 'Space') { event.preventDefault(); fireBullet(); }
    if (event.key == 'd') { lastDirection='right'; myImg01.style.transform = 'scaleX(1)'; myImg01.style.left=parseInt(myImg01.style.left)+10+'px' }
