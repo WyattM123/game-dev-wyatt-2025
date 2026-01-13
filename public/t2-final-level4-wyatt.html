@@ -33,6 +33,13 @@ let canTakeDamage = true
 let ammo = 24
 let maxAmmo = 24
 
+function hideTopZombies() {
+    ["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].forEach(id => {
+        let z = document.getElementById(id);
+        z.style.display = "none"; // hide them
+    });
+}
+   
 function updateHealthDisplay(){
    document.getElementById("healthDisplay").innerHTML = "Health: " + playerHP
 }
@@ -229,11 +236,22 @@ function randomizeZombiePositions(){
    })
 }
 
+let topZombiesActivated = false;
+
 function checkRadioCollision(){
-   let radio = document.getElementById("myImg12")
-   if (myHitOther(myImg01, radio)){
-      let r = radio.getBoundingClientRect()
-      spawnHitParticle(r.left + 40, r.top + 30, "yellow")
+   let radio = document.getElementById("myImg12");
+   if (myHitOther(myImg01, radio)) {
+      let r = radio.getBoundingClientRect();
+      spawnHitParticle(r.left + 40, r.top + 30, "yellow");
+
+      // activate top zombies once
+      if (!topZombiesActivated) {
+          topZombiesActivated = true;
+          ["myImg06","myImg07","myImg08","myImg09","myImg10","myImg11"].forEach(id => {
+              let z = document.getElementById(id);
+              respawnZombie(id, z.id.includes("10") || z.id.includes("11") ? "zombie" + (id.slice(-2)) + "bHP" : "zombie" + (id.slice(-2)) + "HP");
+          });
+      }
    }
 }
 
