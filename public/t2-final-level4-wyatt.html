@@ -65,14 +65,14 @@ function myHitOther(el1, el2){
    return !(A.right < B.left || A.left > B.right || A.bottom < B.top || A.top > B.bottom)
 }
 
-function spawnHitParticle(x,y){
+function spawnHitParticle(x,y, color="red"){
    let p = document.createElement("div")
    p.style.position = "absolute"
    p.style.left = x + "px"
    p.style.top  = y + "px"
    p.style.width = "20px"
    p.style.height = "20px"
-   p.style.background = "red"
+   p.style.background = color
    p.style.borderRadius = "50%"
    p.style.opacity = "1"
    p.style.zIndex = 9999
@@ -131,7 +131,7 @@ function fireBullet(){
 
    let interval = setInterval(()=>{
       b.style.left = parseInt(b.style.left) + dx + "px"
-      b.style.top  = parseInt(b.style.top)  + dy + "px"
+      b.style.top  = parseInt(b.style.top) + dy + "px"
 
       ;[
         ["myImg02","zombie1HP"],
@@ -229,6 +229,14 @@ function randomizeZombiePositions(){
    })
 }
 
+function checkRadioCollision(){
+   let radio = document.getElementById("myImg12")
+   if (myHitOther(myImg01, radio)){
+      let r = radio.getBoundingClientRect()
+      spawnHitParticle(r.left + 40, r.top + 30, "yellow")
+   }
+}
+
 setInterval(()=>{
   [
     ["myImg02",4],
@@ -250,8 +258,11 @@ setInterval(()=>{
     if (el.style.display!="none" && myHitOther(myImg01, el))
       playerTakeDamage()
   })
+
+  checkRadioCollision()
 },120)
 </script>
+
 
 <body id="myBody" style="background-repeat:repeat; background-size: 20%" background="Background3.gif"
 onload="updateHealthDisplay(); updateAmmoDisplay(); randomizeZombiePositions()"
