@@ -7,6 +7,10 @@ let myClock
 let myScore = 10
 let lastDirection = "right"
 
+
+let playerNormalSrc = "olddudewitgun.gif"
+let playerShootSrc  = "olddudewitgun SHOOT.gif"
+let isShooting = false
 let canShoot = true
 let shootCooldown = 400
 let bullets = []
@@ -105,11 +109,26 @@ function hitZombie(zombieID, hpVarName){
    }
 }
 
+function playShootAnimation(){
+   if (isShooting) return
+
+   isShooting = true
+   let p = document.getElementById("myImg01")
+
+   p.src = playerShootSrc
+
+   setTimeout(() => {
+      p.src = playerNormalSrc
+      isShooting = false
+   }, 120)
+}
+   
 function fireBullet() {
     if (!canShoot || ammo <= 0) return;
 
     ammo -= 1;
-    updateAmmoDisplay();
+   updateAmmoDisplay();
+   playShootAnimation();
 
     canShoot = false;
     setTimeout(() => canShoot = true, shootCooldown);
