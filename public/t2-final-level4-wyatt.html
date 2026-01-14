@@ -7,6 +7,9 @@ let myClock
 let myScore = 10
 let lastDirection = "right"
 
+let zombiesKilled = 0
+let gameEnded = false
+
 let canShoot = true
 let shootCooldown = 400
 let bullets = []
@@ -106,6 +109,7 @@ function hitZombie(id, hpVar){
     window[hpVar]--
     if (window[hpVar] <= 0){
         z.style.display = "none"
+        zombiesKilled++
         document.all.myText01.value = id + " killed"
 
         if (!noRespawnZombies.includes(id)) {
@@ -298,7 +302,50 @@ setInterval(()=>{
   })
 
   checkRadioCollision()
+checkHelicopterCollision()
 },120)
+
+function checkHelicopterCollision(){
+    if (!myImg13Active) return
+
+    let heli = document.getElementById("myImg13")
+
+    if (heli.style.display !== "none" && myHitOther(myImg01, heli)) {
+        endGameCredits()
+    }
+}
+   
+function endGameCredits(){
+    if (gameEnded) return
+    gameEnded = true
+
+    let screen = document.getElementById("endScreen")
+    let text = document.getElementById("creditsText")
+
+    screen.style.display = "block"
+
+    text.innerHTML = `
+        <h1>MISSION COMPLETE</h1>
+        <p>You survived the onslaught</p>
+        <br>
+        <p>Zombies Eliminated:</p>
+        <h2>${zombiesKilled}</h2>
+        <br><br>
+        <p>Thanks for playing</p>
+        <p>Created by Wyatt</p>
+    `
+
+    let pos = -200
+    let scroll = setInterval(()=>{
+        pos += 1
+        text.style.bottom = pos + "px"
+
+        if (pos > window.innerHeight + 300) {
+            clearInterval(scroll)
+        }
+    }, 20)
+}
+   
 </script>
 
 
@@ -358,12 +405,34 @@ style="position:absolute; width:100px; height:80px; left:800px; top:-150px; z-in
 style="position:absolute; width:100px; height:80px; left:900px; top:350px; z-index:1;">
 
 <img id="myImg13" src="chopper.gif"
-style="position:absolute; width:650px; height:500px;
+style="position:absolute; width:700px; height:550px;
 left:-200px; top:-800px; display:none; z-index:5;">
 
 <div id="myBullet"
 style="position:absolute; width:12px; height:12px; background:yellow;
 left:-200px; top:-200px; display:none; z-index:9999;">
+</div>
+
+<div id="endScreen" style="
+  position:fixed;
+  left:0; top:0;
+  width:100%;
+  height:100%;
+  background:black;
+  color:white;
+  display:none;
+  z-index:99999;
+  text-align:center;
+  overflow:hidden;
+">
+  <div id="creditsText" style="
+    position:absolute;
+    width:100%;
+    bottom:-200px;
+    font-size:28px;
+    line-height:50px;
+  ">
+  </div>
 </div>
 
 </body>
