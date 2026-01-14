@@ -233,14 +233,20 @@ function randomizeZombiePositions(){
 
 let topZombiesActivated = false;
 
-/* 🔽 NEW: myImg13 drop function */
 function dropMyImg13(){
     let img = document.getElementById("myImg13");
+
     img.style.display = "block";
+    img.style.left = (window.innerWidth / 2 - 50) + "px";
+    img.style.top = "-100px";
 
     let interval = setInterval(() => {
         img.style.top = (parseInt(img.style.top) + myImg13Speed) + "px";
-        if (parseInt(img.style.top) >= 150) clearInterval(interval);
+
+        // stop near middle of screen
+        if (parseInt(img.style.top) >= window.innerHeight / 2 - 40) {
+            clearInterval(interval);
+        }
     }, 20);
 }
 
@@ -354,7 +360,8 @@ style="position:absolute; width:100px; height:80px; left:800px; top:-150px; z-in
 style="position:absolute; width:100px; height:80px; left:900px; top:350px; z-index:1;">
 
 <img id="myImg13" src="Helicopter.gif"
-style="position:absolute; width:100px; height:80px; left:900px; top:350px; z-index:1;">
+style="position:absolute; width:100px; height:80px;
+left:-200px; top:-200px; display:none; z-index:5;">
 
 <div id="myBullet"
 style="position:absolute; width:12px; height:12px; background:yellow;
