@@ -237,12 +237,12 @@ function dropMyImg13(){
 
     img.style.display = "block";
     img.style.left = (window.innerWidth / 2 - 50) + "px";
-    img.style.top = "-100px";
+    img.style.top = "-800px";
 
     let interval = setInterval(() => {
         img.style.top = (parseInt(img.style.top) + myImg13Speed) + "px";
 
-        if (parseInt(img.style.top) >= 180) {
+        if (parseInt(img.style.top) >= 120) {
             clearInterval(interval);
         }
     }, 20);
@@ -358,7 +358,7 @@ style="position:absolute; width:100px; height:80px; left:800px; top:-150px; z-in
 style="position:absolute; width:100px; height:80px; left:900px; top:350px; z-index:1;">
 
 <img id="myImg13" src="chopper.gif"
-style="position:absolute; width:1000px; height:600px;
+style="position:absolute; width:650px; height:500px;
 left:-200px; top:-800px; display:none; z-index:5;">
 
 <div id="myBullet"
