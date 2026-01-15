@@ -138,7 +138,7 @@ function playShootAnimation(){
 function fireBullet() {
     if (!canShoot || ammo <= 0) return;
 
-    ammo -= 1;
+    ammo--;
     updateAmmoDisplay();
     playShootAnimation();
 
@@ -153,64 +153,77 @@ function fireBullet() {
         b.style.background = "yellow";
         b.style.zIndex = 9999;
 
-        let g = document.getElementById('myImg01');
-        let gx = parseInt(g.style.left)
-        let gy = parseInt(g.style.top)
+        let g = document.getElementById("myImg01");
+        let gx = parseInt(g.style.left);
+        let gy = parseInt(g.style.top);
 
-        b.style.left = gx + 45 + "px";
-        b.style.top  = gy + 35 + "px";
+        b.style.left = (gx + 45) + "px";
+        b.style.top  = (gy + 35) + "px";
 
         document.body.appendChild(b);
 
         let dx = 0, dy = 0;
-        if (lastDirection == "right") dx = 10;
-        if (lastDirection == "left")  dx = -10;
-        if (lastDirection == "up")    dy = -10;
-        if (lastDirection == "down")  dy = 10;
+        if (lastDirection === "right") dx = 10;
+        if (lastDirection === "left")  dx = -10;
+        if (lastDirection === "up")    dy = -10;
+        if (lastDirection === "down")  dy = 10;
 
-        let bulletObj = {el: b, dx: dx, dy: dy, interval: null};
+        let bulletObj = { el: b, dx: dx, dy: dy, interval: null };
 
         bulletObj.interval = setInterval(() => {
-            let bx = parseInt(b.style.left) + bulletObj.dx;
-            let by = parseInt(b.style.top) + bulletObj.dy;
+            let bx = parseInt(b.style.left) + dx;
+            let by = parseInt(b.style.top) + dy;
+
             b.style.left = bx + "px";
             b.style.top  = by + "px";
 
+            // ---- HIT CHECKS (STOP ON FIRST HIT) ----
             if (myImg02.style.display != "none" && myHitOther(b, myImg02)) {
-                hitZombie("myImg02", "zombie1HP"); removeBullet(bulletObj);
+                hitZombie("myImg02", "zombie1HP");
+                removeBullet(bulletObj); return;
             }
             if (myImg03.style.display != "none" && myHitOther(b, myImg03)) {
-                hitZombie("myImg03", "zombie2HP"); removeBullet(bulletObj);
+                hitZombie("myImg03", "zombie2HP");
+                removeBullet(bulletObj); return;
             }
             if (myImg04.style.display != "none" && myHitOther(b, myImg04)) {
-                hitZombie("myImg04", "zombie3HP"); removeBullet(bulletObj);
+                hitZombie("myImg04", "zombie3HP");
+                removeBullet(bulletObj); return;
             }
             if (myImg05.style.display != "none" && myHitOther(b, myImg05)) {
-                hitZombie("myImg05", "zombie4HP"); removeBullet(bulletObj);
+                hitZombie("myImg05", "zombie4HP");
+                removeBullet(bulletObj); return;
             }
-
             if (myImg06.style.display != "none" && myHitOther(b, myImg06)) {
-                hitZombie("myImg06", "zombie1bHP"); removeBullet(bulletObj);
+                hitZombie("myImg06", "zombie1bHP");
+                removeBullet(bulletObj); return;
             }
             if (myImg07.style.display != "none" && myHitOther(b, myImg07)) {
-                hitZombie("myImg07", "zombie1cHP"); removeBullet(bulletObj);
+                hitZombie("myImg07", "zombie1cHP");
+                removeBullet(bulletObj); return;
             }
             if (myImg08.style.display != "none" && myHitOther(b, myImg08)) {
-                hitZombie("myImg08", "zombie2bHP"); removeBullet(bulletObj);
+                hitZombie("myImg08", "zombie2bHP");
+                removeBullet(bulletObj); return;
             }
             if (myImg09.style.display != "none" && myHitOther(b, myImg09)) {
-                hitZombie("myImg09", "zombie2cHP"); removeBullet(bulletObj);
+                hitZombie("myImg09", "zombie2cHP");
+                removeBullet(bulletObj); return;
             }
             if (myImg10.style.display != "none" && myHitOther(b, myImg10)) {
-                hitZombie("myImg10", "zombie3bHP"); removeBullet(bulletObj);
+                hitZombie("myImg10", "zombie3bHP");
+                removeBullet(bulletObj); return;
             }
             if (myImg11.style.display != "none" && myHitOther(b, myImg11)) {
-                hitZombie("myImg11", "zombie4bHP"); removeBullet(bulletObj);
+                hitZombie("myImg11", "zombie4bHP");
+                removeBullet(bulletObj); return;
             }
 
+            // ---- OUT OF BOUNDS ----
             if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
                 removeBullet(bulletObj);
             }
+
         }, 20);
 
         bullets.push(bulletObj);
