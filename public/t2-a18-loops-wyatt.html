@@ -1,0 +1,93 @@
+<head>
+  <meta charset="UTF-8">
+  <title>t2a18-loops-1-page-wyatt.html</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1 align="center">JavaScript Loops – One Page</h1>
+
+<button onclick="runLoops()">Run All Loops</button>
+
+<pre id="output"></pre>
+
+<script>
+function runLoops() {
+  let output = '';
+
+  // 1. FOR LOOP
+  output += '--- for loop ---\n';
+  for (let i = 0; i < 3; i++) {
+    output += 'Count: ' + i + '\n';
+  }
+
+  // 2. WHILE LOOP
+  output += '\n--- while loop ---\n';
+  let i = 0;
+  while (i < 3) {
+    output += 'Index: ' + i + '\n';
+    i++;
+  }
+
+  // 3. DO...WHILE LOOP
+  output += '\n--- do...while loop ---\n';
+  let j = 5;
+  do {
+    output += 'Run: ' + j + '\n';
+    j++;
+  } while (j < 3);
+
+  // 4. FOR...IN LOOP (objects)
+  output += '\n--- for...in loop ---\n';
+  const user = { name: 'Alice', age: 30 };
+  for (const key in user) {
+    output += key + ': ' + user[key] + '\n';
+  }
+
+  // 5. FOR...OF LOOP (arrays)
+  output += '\n--- for...of loop ---\n';
+  const fruits = ['Apple', 'Banana'];
+  for (const fruit of fruits) {
+    output += 'Fruit: ' + fruit + '\n';
+  }
+
+  // 6. forEach LOOP
+  output += '\n--- forEach loop ---\n';
+  const numbers = [10, 20];
+  numbers.forEach((num, index) => {
+    output += 'Index ' + index + ': ' + num + '\n';
+  });
+
+  // 7. map LOOP
+  output += '\n--- map loop ---\n';
+  const nums = [1, 2];
+  const squared = nums.map(n => n * 2);
+  output += squared.join(', ') + '\n';
+
+  // 8. filter LOOP
+  output += '\n--- filter loop ---\n';
+  const ages = [10, 20];
+  const adults = ages.filter(a => a >= 18);
+  output += adults.join(', ') + '\n';
+
+  // 9. reduce LOOP
+  output += '\n--- reduce loop ---\n';
+  const vals = [1, 2];
+  const sum = vals.reduce((acc, curr) => acc + curr, 0);
+  output += 'Sum: ' + sum + '\n';
+
+  document.getElementById('output').textContent = output;
+}
+</script>
+
+</body>
