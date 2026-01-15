@@ -134,6 +134,11 @@ function playShootAnimation(){
       isShooting = false
    }, 900)
 }
+
+function removeBullet(bulletObj){
+    clearInterval(bulletObj.interval);
+    bulletObj.el.remove();
+}   
    
 function fireBullet() {
     if (!canShoot || ammo <= 0) return;
@@ -177,7 +182,6 @@ function fireBullet() {
             b.style.left = bx + "px";
             b.style.top  = by + "px";
 
-            // ---- HIT CHECKS (STOP ON FIRST HIT) ----
             if (myImg02.style.display != "none" && myHitOther(b, myImg02)) {
                 hitZombie("myImg02", "zombie1HP");
                 removeBullet(bulletObj); return;
@@ -219,7 +223,6 @@ function fireBullet() {
                 removeBullet(bulletObj); return;
             }
 
-            // ---- OUT OF BOUNDS ----
             if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
                 removeBullet(bulletObj);
             }
