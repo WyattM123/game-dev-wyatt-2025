@@ -232,6 +232,11 @@ function fireBullet() {
                 hitZombie("myImg03", "zombie2HP");
                 removeBullet(bulletObj);
             }
+           
+            if (document.getElementById('myImg06').style.display != "none" && myHitOther(b, document.getElementById('myImg06'))) {
+                hitZombie("myImg06", "zombie3HP");
+                removeBullet(bulletObj);
+            }           
 
             if (bx < -20 || bx > 2000 || by < -20 || by > 2000) {
                 removeBullet(bulletObj);
