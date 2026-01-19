@@ -40,26 +40,29 @@ class myDog extends myAnimal {
 <input type="button"
  value="Example Class Set and Show Class Animal"
  onClick="{
-   myPet = new myAnimal('Generic Animal', 3)
+   let name = document.getElementById('myText01').value
+   myPet = new myAnimal(name, 3)
    document.getElementById('myDiv01').innerHTML = myPet.myShow()
  }">
 
 <h4>Example extending Class code</h4>
 
-Nothing:
-<input type="text" id="myText01" value="Useless at the moment"><br><br>
+Name:
+<input type="text" id="myText01" value="Fluffy"><br><br>
 
 <input type="button"
  value="Example Extend Class Animal (Cat)"
  onClick="{
-   myPet = new myCat('Fluffy', 14)
+   let name = document.getElementById('myText01').value
+   myPet = new myCat(name, 14)
    document.getElementById('myDiv01').innerHTML = myPet.myShow()
  }">
 
 <input type="button"
  value="Example Extend Class Animal (Dog)"
  onClick="{
-   myPet = new myDog('Crumbgeek', 5)
+   let name = document.getElementById('myText01').value
+   myPet = new myDog(name, 5)
    document.getElementById('myDiv01').innerHTML = myPet.myShow()
  }">
 
