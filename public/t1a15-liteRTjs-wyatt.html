@@ -1,78 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>Edge Impulse FOMO – liteRTjs</title>
+
+<style>
+body { font-family: Arial; text-align:center; background:#f0f4f8; }
+canvas { border:3px solid #1a73e8; border-radius:8px; }
+button { padding:10px 20px; font-size:16px; }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/tf-tflite.min.js"></script>
 </head>
 
 <body>
-<h2>Edge Impulse FOMO (Float32)</h2>
 
-<button onclick="start()">Start</button>
+<h2>Edge Impulse FOMO (Float32)</h2>
+<button id="startBtn">Start</button>
+<div id="status">Idle</div>
 <br><br>
-<canvas id="c" width="240" height="240"></canvas>
-<video id="v" autoplay playsinline hidden></video>
+
+<canvas id="canvas" width="240" height="240"></canvas>
+<video id="video" autoplay playsinline hidden></video>
 
 <script>
-let model;
-const SIZE = 240;
+/* =======================
+   CONFIG (manual by necessity)
+   ======================= */
+const MODEL_URL =
+  "ei-1pen-dav-object-detection-tensorflow-lite-float32-model.4.lite";
+
+const INPUT_SIZE = 240;
+const CONF_THRESHOLD = 0.5;
 const LABELS = ["background","pen"];
 
+/* ======================= */
+let model, running=false;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const video = document.getElementById("video");
+const status = document.getElementById("status");
+
+document.getElementById("startBtn").onclick = start;
+
+async function start() {
+  if (running) return;
+  running = true;
+  status.textContent = "Starting webcam...";
+
+  // Webcam always starts first (visible result)
+  const stream = await navigator.mediaDevices.getUserMedia({video:true});
+  video.srcObject = stream;
+  await video.play();
+
+  status.textContent = "Loading model...";
+  await loadModel();
+
+  status.textContent = "Running inference...";
+  requestAnimationFrame(loop);
+}
+
 async function loadModel() {
-  const url = "ei-1pen-dav-object-detection-tensorflow-lite-float32-model.4.lite";
-  const r = await fetch(url);
+  const r = await fetch(MODEL_URL);
   const buf = await r.arrayBuffer();
   model = await tflite.loadTFLiteModel(buf);
   console.log("Model loaded");
 }
 
-async function start() {
-  await loadModel();
-
-  const stream = await navigator.mediaDevices.getUserMedia({video:true});
-  v.srcObject = stream;
-
-  requestAnimationFrame(loop);
-}
-
 async function loop() {
-  const ctx = c.getContext("2d");
-  ctx.drawImage(v,0,0,SIZE,SIZE);
+  if (!running) return;
+
+  ctx.drawImage(video,0,0,INPUT_SIZE,INPUT_SIZE);
 
   const input = tf.tidy(() =>
-    tf.browser.fromPixels(c)
-      .expandDims(0)
+    tf.browser.fromPixels(canvas)
       .toFloat()
       .div(255)
+      .expandDims(0)
   );
 
   const output = await model.invoke(input);
-  drawFOMO(output, ctx);
+  drawFOMO(output);
 
   tf.dispose([input, output]);
   requestAnimationFrame(loop);
 }
 
-function drawFOMO(out, ctx) {
+function drawFOMO(out) {
   const data = out.dataSync();
-  const [_, h, w, classes] = out.shape;
-  const cell = SIZE / w;
+  const [_, gh, gw, classes] = out.shape;
+  const cell = INPUT_SIZE / gw;
 
   let idx = 0;
-  for (let y=0;y<h;y++) {
-    for (let x=0;x<w;x++) {
-      let best = 0;
-      let bestC = 0;
+  for (let y=0;y<gh;y++) {
+    for (let x=0;x<gw;x++) {
+      let best=0, bestC=0;
       for (let c=0;c<classes;c++) {
         const v = data[idx++];
         if (v > best) { best=v; bestC=c; }
       }
-      if (bestC>0 && best>0.5) {
-        ctx.fillStyle="red";
-        ctx.fillRect(x*cell,y*cell,cell,cell);
+      if (bestC>0 && best>CONF_THRESHOLD) {
+        ctx.strokeStyle="red";
+        ctx.lineWidth=2;
+        ctx.strokeRect(x*cell,y*cell,cell,cell);
         ctx.fillStyle="white";
         ctx.fillText(LABELS[bestC],x*cell+4,y*cell+12);
       }
@@ -80,5 +111,6 @@ function drawFOMO(out, ctx) {
   }
 }
 </script>
+
 </body>
 </html>
