@@ -123,9 +123,9 @@
         <section id="home" class="tab-content active">
             <div class="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                    <div class="vintage-quote mb-6">
-                        "LJW Instruments & More is the perfect place for artists of all skill levels."
-                    </div>
+<div id="quoteBox" class="vintage-quote mb-6">
+    "LJW Instruments & More is the perfect place for artists of all skill levels."
+</div>
                     
                     <div class="card p-8 rounded-lg mb-6">
                         <h3 class="text-2xl font-bold mb-4" style="color: var(--dark-red)">Store Information</h3>
@@ -268,6 +268,23 @@
     </footer>
 
     <script>
+
+const quotes = [
+    "LJW Instruments & More is the perfect place for artists of all skill levels.",
+    "Where creativity gets LOUD.",
+    "Plug in, play hard, and get better every session.",
+    "Your next song starts right here.",
+    "Serious sound. Zero judgment.",
+    "Turn it up — we’re soundproof.",
+    "From beginners to pros, everyone belongs here."
+];
+
+function setRandomQuote() {
+    const quoteBox = document.getElementById('quoteBox');
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    quoteBox.innerText = `"${quotes[randomIndex]}"`;
+}
+        
         // Use an array of objects to track precise start/end for reservations
         const reservedRanges = {
             'A': [{start: 15.0, end: 17.0}], 
@@ -416,6 +433,9 @@
 
         setInterval(updateSchedule, 60000); // Update every 30s for better precision
         updateSchedule();
+        setRandomQuote();
+        setInterval(setRandomQuote, 5000); // changes every 5 seconds
+        
     </script>
 </body>
 </html>
